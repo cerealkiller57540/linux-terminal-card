@@ -26,6 +26,132 @@ const _catSvg = () => `<svg viewBox="0 0 51 46"><path fill="currentColor" d="${C
 function _num(v){ const n = parseFloat(v); return isNaN(n) ? null : n; }
 function _lvl(p, warn, hot){ return p == null ? 'ok' : (p >= hot ? 'hot' : p >= warn ? 'warn' : 'ok'); }
 
+/* ── i18n FR/EN : la clé est la chaîne française (le français s'affiche tel quel) ── */
+let _lang = 'en';
+const _EN = {
+ "2e batterie % (optionnel)": "2nd battery % (optional)",
+ "Aberration px": "Aberration px",
+ "Alerte CRIT": "CRIT alert",
+ "Alerte WARN": "WARN alert",
+ "Allumage CRT (1/0)": "CRT power-on (1/0)",
+ "Batt CRIT %": "Batt CRIT %",
+ "Batt WARN %": "Batt WARN %",
+ "Batt2 CRIT %": "Batt2 CRIT %",
+ "Batt2 WARN %": "Batt2 WARN %",
+ "Batterie %": "Battery %",
+ "Bloom (0–1)": "Bloom (0–1)",
+ "CPU %": "CPU %",
+ "CRITIQUE": "CRITICAL",
+ "Charge": "Load",
+ "Couleur": "Colour",
+ "Couleur de l'icône": "Icon colour",
+ "Couleur du glow": "Glow colour",
+ "Couleurs écran": "Screen colours",
+ "Courbure (0–0.35)": "Curvature (0–0.35)",
+ "Disque %": "Disk %",
+ "Débit ↑": "Speed ↑",
+ "Débit ↓": "Speed ↓",
+ "Dégradé — arrivée": "Gradient — to",
+ "Dégradé — départ": "Gradient — from",
+ "Détournement des barres (label + seuils par slot)": "Bar override (label + thresholds per slot)",
+ "Effet CRT (WebGL — desktop)": "CRT effect (WebGL — desktop)",
+ "En-tête": "Header",
+ "En-tête — effets avancés": "Header — advanced effects",
+ "Espacement": "Spacing",
+ "Ex fond : #001208 vert phosphore · #120a00 ambre · #001018 cyan sombre": "Background examples: #001208 phosphor green · #120a00 amber · #001018 dark cyan",
+ "Flicker (0–0.2)": "Flicker (0–0.2)",
+ "Fond de dalle": "Panel background",
+ "Fond vide = dalle neutre sombre (va avec tous les thèmes). Couleurs vides = défauts cyan/vert Neo Tokyo.": "Empty background = dark neutral panel (suits every theme). Empty colours = cyan/green defaults.",
+ "Fond vide = dalle neutre sombre (va avec tous les thèmes). Couleurs vides = défauts cyan/vert.": "Empty background = dark neutral panel (suits every theme). Empty colours = cyan/green defaults.",
+ "GPU %": "GPU %",
+ "GPU HOT": "GPU HOT",
+ "GPU WARN": "GPU WARN",
+ "Glitch burst (0–1)": "Glitch burst (0–1)",
+ "Glow du titre": "Title glow",
+ "Grain (0–20)": "Grain (0–20)",
+ "Grille RGB (0–1)": "RGB mask (0–1)",
+ "Général": "General",
+ "Hôte (prompt)": "Host (prompt)",
+ "Icône": "Icon",
+ "Italique": "Italic",
+ "Kernel": "Kernel",
+ "Libellé BATT": "BATT label",
+ "Libellé BATT2": "BATT2 label",
+ "Libellé CPU": "CPU label",
+ "Libellé DSK": "DSK label",
+ "Libellé GPU": "GPU label",
+ "Libellé LOAD": "LOAD label",
+ "Libellé RAM": "RAM label",
+ "Libellé TEMP": "TEMP label",
+ "Libellé du chiffre \"process\"": "Label for the \"process\" count",
+ "Liseret vide = suit le thème (--rgb-primary-color) comme avant.": "Empty frame = follows the theme (--rgb-primary-color), as before.",
+ "Liseret écran": "Screen frame",
+ "Load average": "Load average",
+ "Luminosité (0–1)": "Brightness (0–1)",
+ "MAJ": "upd",
+ "MAJ en attente": "Pending updates",
+ "Majuscules": "Uppercase",
+ "Mêmes réglages que sur les autres cards néon (entities/climate).": "Same settings as the other neon cards (entities/climate).",
+ "Nb cœurs (pour load %)": "Core count (for load %)",
+ "OS": "OS",
+ "Ombre titre (text-shadow)": "Title shadow (text-shadow)",
+ "Ondulation (0–5)": "Waviness (0–5)",
+ "Police": "Font",
+ "Principal (labels/barres)": "Main (labels/bars)",
+ "Process total": "Total processes",
+ "Prompt": "Prompt",
+ "Période rafale (s)": "Burst period (s)",
+ "Quand CPU et RAM sont tous les deux indisponibles : SIGNAL LOST / NO CARRIER, mauvaise réception. Défauts réglés à l'œil au banc d'essai.": "When CPU and RAM are both unavailable: SIGNAL LOST / NO CARRIER, bad reception. Defaults tuned by eye.",
+ "Quand CPU et RAM sont tous les deux indisponibles : SIGNAL LOST / NO CARRIER, mauvaise réception. Défauts réglés à l'œil.": "When CPU and RAM are both unavailable: SIGNAL LOST / NO CARRIER, bad reception. Defaults tuned by eye.",
+ "RAM %": "RAM %",
+ "RGB split (px)": "RGB split (px)",
+ "Rafale (0–3)": "Burst (0–3)",
+ "Reboot requis (binary)": "Reboot required (binary)",
+ "Release upgrade": "Release upgrade",
+ "Renomme une barre et/ou change ses seuils sans toucher l'entité — utile pour brancher autre chose qu'attendu (ex : une batterie dans le slot GPU) sans fausse alerte à 85%. La logique reste \"haut = mauvais\" pour ces slots (CPU/GPU/LOAD/RAM/DSK/TEMP) — la batterie garde sa logique inversée. Laisser vide = comportement d'origine.": "Rename a bar and/or change its thresholds without touching the entity — handy to plug in something unexpected (e.g. a battery in the GPU slot) without a false alert at 85%. The logic stays \"high = bad\" for these slots (CPU/GPU/LOAD/RAM/DSK/TEMP) — the battery keeps its inverted logic. Leave empty = original behaviour.",
+ "Rémanence phosphore (0–1)": "Phosphor persistence (0–1)",
+ "Réseau ↑ (TX)": "Network ↑ (TX)",
+ "Réseau ↓ (RX)": "Network ↓ (RX)",
+ "Scanlines (0–1)": "Scanlines (0–1)",
+ "Scintillement du titre": "Title flicker",
+ "Seuils d'alerte": "Alert thresholds",
+ "Si renseignée, l'ombre remplace le glow ci-dessous.": "If set, the shadow replaces the glow below.",
+ "Système / OS (reporter MQTT)": "System / OS (MQTT reporter)",
+ "Taille de l'icône": "Icon size",
+ "Taille du glow": "Glow size",
+ "Taille titre": "Title size",
+ "Temp CRIT °C": "Temp CRIT °C",
+ "Temp WARN °C": "Temp WARN °C",
+ "Température / Batterie / Réseau": "Temperature / Battery / Network",
+ "Température / Batteries / Réseau": "Temperature / Batteries / Network",
+ "Température CPU": "CPU temperature",
+ "Texte défaut": "Default text",
+ "Texte secondaire (dim)": "Secondary text (dim)",
+ "Titre": "Title",
+ "Titre en dégradé": "Gradient title",
+ "Uptime": "Uptime",
+ "Vitre CRT rendue par shader. Sur iPad/mobile : repli CSS automatique.": "CRT glass rendered by a shader. On iPad/mobile: automatic CSS fallback.",
+ "batterie": "battery",
+ "disponible": "available",
+ "défaut : couleur du titre": "default: title colour",
+ "défaut : taille du titre": "default: title size",
+ "température": "temperature",
+ "Écran « machine injoignable »": "“Machine unreachable” screen",
+ "Épaisseur": "Weight",
+ "à jour": "up to date",
+ "— thème HA —": "— HA theme —"
+};
+const _t = (fr) => {
+  if (_lang === 'fr' || fr == null || fr === '') return fr;
+  const k = String(fr).replace(/\s+/g, ' ').trim();
+  return _EN[k] ?? fr;
+};
+const _setLang = (h) => {
+  const l = /^fr/i.test(String(h?.locale?.language || h?.language || '')) ? 'fr' : 'en';
+  if (l === _lang) return false;
+  _lang = l; return true;
+};
+
 class LinuxTerminalCard extends HTMLElement {
   constructor(){ super(); this.attachShadow({ mode: 'open' }); }
 
@@ -38,7 +164,7 @@ class LinuxTerminalCard extends HTMLElement {
   }
 
   set hass(h){
-    this._hass = h;
+    this._hass = h; _setLang(h);
     if (!this._rendered){ this._render(); return; }
     if (this._raf) return;
     this._raf = requestAnimationFrame(() => { this._raf = 0; this._update(); });
@@ -208,22 +334,22 @@ class LinuxTerminalCard extends HTMLElement {
     if (al.lvl === 'crit'){
       const parts = [];
       if (al.critTemp) parts.push(`temp ${Math.round(s.temp)}°`);
-      if (al.critBatt) parts.push(`batterie ${Math.round(s.batt)}%`);
-      warnLines = `<div class="ln alert crit">🔴 CRITIQUE: ${parts.join(' · ')}</div>`;
+      if (al.critBatt) parts.push(`${_t('batterie')} ${Math.round(s.batt)}%`);
+      warnLines = `<div class="ln alert crit">🔴 ${_t('CRITIQUE')}: ${parts.join(' · ')}</div>`;
     } else if (al.lvl === 'warn'){
       const parts = [];
-      if (al.warnTemp) parts.push(`température ${Math.round(s.temp)}°`);
-      if (al.warnBatt) parts.push(`batterie ${Math.round(s.batt)}%`);
+      if (al.warnTemp) parts.push(`${_t('température')} ${Math.round(s.temp)}°`);
+      if (al.warnBatt) parts.push(`${_t('batterie')} ${Math.round(s.batt)}%`);
       warnLines = `<div class="ln alert warn">⚠ WARN: ${parts.join(' · ')}</div>`;
     }
 
     // ligne updates / reboot
     const updTxt = s.updates == null ? '' :
-      (s.updates > 0 ? `<span class="updN">${s.updates} MAJ</span>` : `<span class="upd0">à jour</span>`);
+      (s.updates > 0 ? `<span class="updN">${s.updates} ${_t('MAJ')}</span>` : `<span class="upd0">${_t('à jour')}</span>`);
     const rebootTxt = s.reboot ? `<span class="reboot"> · reboot *</span>` : '';
     // ligne dédiée release upgrade Ubuntu (montée de version)
     const releaseLine = s.release
-      ? `<div class="ln alert warn">⬆ Ubuntu ${s.release} disponible (do-release-upgrade)</div>`
+      ? `<div class="ln alert warn">⬆ Ubuntu ${s.release} ${_t('disponible')} (do-release-upgrade)</div>`
       : '';
 
     const html = `
@@ -423,7 +549,7 @@ const STYLES = `
  * ═══════════════════════════════════════════════════════════════════════════ */
 class LinuxTerminalCardEditor extends HTMLElement {
   setConfig(c){ this._config = { ...c }; if (!this._rendered){ this._rendered = true; this._render(); } else this._syncValues(); }
-  set hass(h){ this._hass = h; this._refreshLists(); }
+  set hass(h){ this._hass = h; if (_setLang(h) && this._rendered) this._render(); this._refreshLists(); }
 
   _fire(){ this.dispatchEvent(new CustomEvent('config-changed', { detail: { config: this._config }, bubbles: true, composed: true })); }
   _set(key, val){
@@ -463,14 +589,14 @@ class LinuxTerminalCardEditor extends HTMLElement {
   }
   // texte simple — pas de datalist (rien à chercher : titre, hôte, nombres…)
   _text(label, key, ph){
-    return `<div class="field"><label>${label}</label>
-      <input data-key="${key}" value="${this._val(key)}" placeholder="${ph || ''}" autocomplete="off"/></div>`;
+    return `<div class="field"><label>${_t(label)}</label>
+      <input data-key="${key}" value="${this._val(key)}" placeholder="${_t(ph || '')}" autocomplete="off"/></div>`;
   }
   // sélecteur d'entité — input + datalist (autocomplétion utile)
   _entity(label, key, ph){
     const lid = 'dl_' + key.replace(/\W/g, '');
-    return `<div class="field"><label>${label}</label>
-      <input data-key="${key}" value="${this._val(key)}" list="${lid}" placeholder="${ph || 'sensor.…'}" autocomplete="off"/>
+    return `<div class="field"><label>${_t(label)}</label>
+      <input data-key="${key}" value="${this._val(key)}" list="${lid}" placeholder="${_t(ph || 'sensor.…')}" autocomplete="off"/>
       <datalist id="${lid}"></datalist></div>`;
   }
   // couleur — picker natif + champ texte côte à côte (pattern heat-pump-card)
@@ -483,18 +609,18 @@ class LinuxTerminalCardEditor extends HTMLElement {
   }
   _color(label, key, ph){
     const v = this._val(key);
-    return `<div class="field"><label>${label}</label>
+    return `<div class="field"><label>${_t(label)}</label>
       <div class="color-row">
         <input type="color" data-key="${key}" value="${this._hexColor(v) || ph || '#b482ff'}" class="color-swatch"/>
-        <input type="text" data-key="${key}" value="${v}" placeholder="${ph || '#b482ff'}" autocomplete="off" class="color-text"/>
+        <input type="text" data-key="${key}" value="${v}" placeholder="${_t(ph || '#b482ff')}" autocomplete="off" class="color-text"/>
       </div></div>`;
   }
   // icône MDI — input + lien "parcourir MDI" + preview live (pattern neon-header-card-v2)
   _icon(label, key, ph){
     return `<div class="field">
-      <label>${label} — <a href="https://pictogrammers.com/library/mdi/" target="_blank" rel="noopener" style="color:var(--primary-color);font-size:10px">parcourir MDI ↗</a></label>
+      <label>${_t(label)} — <a href="https://pictogrammers.com/library/mdi/" target="_blank" rel="noopener" style="color:var(--primary-color);font-size:10px">parcourir MDI ↗</a></label>
       <div class="icon-row">
-        <input data-key="${key}" value="${this._val(key)}" placeholder="${ph || 'mdi:laptop'}" autocomplete="off" class="icon-input"/>
+        <input data-key="${key}" value="${this._val(key)}" placeholder="${_t(ph || 'mdi:laptop')}" autocomplete="off" class="icon-input"/>
         <div class="icon-preview" data-preview="${key}"></div>
       </div></div>`;
   }
@@ -519,17 +645,17 @@ class LinuxTerminalCardEditor extends HTMLElement {
           border:1px solid var(--divider-color,#333);border-radius:7px;color:var(--primary-text-color)}
       </style>
       <div class="grid">
-        <div class="group"><div class="group-title">Général</div>
+        <div class="group"><div class="group-title">${_t(`Général`)}</div>
           ${this._text('Hôte (prompt)', 'host', 'user@linux')}
         </div>
-        <div class="group"><div class="group-title">En-tête</div>
+        <div class="group"><div class="group-title">${_t(`En-tête`)}</div>
           ${this._text('Titre', 'header.title', 'Linux PC')}
           ${this._icon('Icône', 'header.icon', 'mdi:laptop')}
           ${this._color('Couleur', 'header.color', '#b482ff')}
           ${this._text('Taille titre', 'header.title_size', '18px')}
           ${this._text('Ombre titre (text-shadow)', 'header.title_shadow', '0 0 8px ...')}
         </div>
-        <div class="group"><div class="group-title">Système / OS (reporter MQTT)</div>
+        <div class="group"><div class="group-title">${_t(`Système / OS (reporter MQTT)`)}</div>
           ${this._entity('OS', 'os_entity')}
           ${this._entity('Kernel', 'kernel_entity')}
           ${this._entity('Uptime', 'uptime_entity')}
@@ -538,7 +664,7 @@ class LinuxTerminalCardEditor extends HTMLElement {
           ${this._entity('Reboot requis (binary)', 'reboot_entity', 'binary_sensor.…')}
           ${this._entity('Process total', 'proc_entity')}
         </div>
-        <div class="group"><div class="group-title">Charge</div>
+        <div class="group"><div class="group-title">${_t(`Charge`)}</div>
           ${this._entity('CPU %', 'cpu_entity')}
           ${this._entity('GPU %', 'gpu_entity')}
           ${this._entity('Load average', 'load_entity')}
@@ -546,13 +672,13 @@ class LinuxTerminalCardEditor extends HTMLElement {
           ${this._entity('RAM %', 'ram_entity')}
           ${this._entity('Disque %', 'disk_entity')}
         </div>
-        <div class="group"><div class="group-title">Température / Batterie / Réseau</div>
+        <div class="group"><div class="group-title">${_t(`Température / Batterie / Réseau`)}</div>
           ${this._entity('Température CPU', 'temp_entity')}
           ${this._entity('Batterie %', 'battery_entity')}
           ${this._entity('Réseau ↓ (RX)', 'net_rx_entity')}
           ${this._entity('Réseau ↑ (TX)', 'net_tx_entity')}
         </div>
-        <div class="group"><div class="group-title">Seuils d'alerte</div>
+        <div class="group"><div class="group-title">${_t(`Seuils d'alerte`)}</div>
           <div class="row2">${this._text('Temp WARN °C', 'temp_warn', '65')}${this._text('Temp CRIT °C', 'temp_crit', '85')}</div>
           <div class="row2">${this._text('Batt WARN %', 'batt_warn', '25')}${this._text('Batt CRIT %', 'batt_crit', '10')}</div>
         </div>

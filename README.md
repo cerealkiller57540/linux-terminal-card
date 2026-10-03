@@ -17,7 +17,7 @@
 
 The card is a small shell session: an `OS … · k6.8` line, an `up …` line, a bar per metric and a prompt with a blinking cursor. The WebGL variant draws it on a real bulging tube (barrel distortion, chromatic aberration, scanlines, bloom, RGB phosphor mask and trails), inside a bezel plate. The CSS variant fakes the same look without WebGL.
 
-Warnings are graded: an amber or red bar, then a red `CRITIQUE` banner and a red frame when temperature or battery crosses its critical threshold. When both CPU and RAM become unavailable, the screen turns into a dead link: `SIGNAL LOST`, `NO CARRIER`.
+Warnings are graded: an amber or red bar, then a red `CRITICAL` banner (`CRITIQUE` in French) and a red frame when temperature or battery crosses its critical threshold. When both CPU and RAM become unavailable, the screen turns into a dead link: `SIGNAL LOST`, `NO CARRIER`.
 
 <div align="center">
 
@@ -44,7 +44,7 @@ Warnings are graded: an amber or red bar, then a red `CRITIQUE` banner and a red
 - **Re-label any slot** (`cpu_label`, `proc_label`, …) and set its own thresholds, to show something other than the default metric.
 - **Tap a line or a bar** to open that entity's more-info dialog.
 - **Header** with icon, font, gradient, glow and flicker, in the same style as the other neon cards.
-- **Visual editor** with collapsible panels. The WebGL card falls back to the CSS rendering if the browser has no WebGL.
+- **Visual editor** with collapsible panels, in English or French. The WebGL card falls back to the CSS rendering if the browser has no WebGL.
 
 ## 📦 Installation
 
@@ -177,7 +177,7 @@ Every entity option is optional: a missing sensor hides its line. Options marked
 
 **Where do the OS, kernel and update lines come from?** From any sensors you point the options at. The author feeds them from a small script that publishes over MQTT; Glances covers the rest. Without them the lines are hidden.
 
-**The editor labels and the `CRITIQUE`, `MAJ` texts are in French.** Translation is on the way. Every option can also be set in YAML.
+**Which languages are supported?** English and French. The editor and the card texts follow your Home Assistant language: French if it is French, English otherwise. Reload the page after changing the language.
 
 **Does it load anything from the internet?** Only the JetBrains Mono and Orbitron fonts, from Google Fonts. No data leaves your Home Assistant.
 

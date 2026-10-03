@@ -393,6 +393,132 @@ const PERSIST_FRAG = `
     gl_FragColor = vec4(max(cur, prev), 1.0);
   }`;
 
+/* ── i18n FR/EN : la clé est la chaîne française (le français s'affiche tel quel) ── */
+let _lang = 'en';
+const _EN = {
+ "2e batterie % (optionnel)": "2nd battery % (optional)",
+ "Aberration px": "Aberration px",
+ "Alerte CRIT": "CRIT alert",
+ "Alerte WARN": "WARN alert",
+ "Allumage CRT (1/0)": "CRT power-on (1/0)",
+ "Batt CRIT %": "Batt CRIT %",
+ "Batt WARN %": "Batt WARN %",
+ "Batt2 CRIT %": "Batt2 CRIT %",
+ "Batt2 WARN %": "Batt2 WARN %",
+ "Batterie %": "Battery %",
+ "Bloom (0–1)": "Bloom (0–1)",
+ "CPU %": "CPU %",
+ "CRITIQUE": "CRITICAL",
+ "Charge": "Load",
+ "Couleur": "Colour",
+ "Couleur de l'icône": "Icon colour",
+ "Couleur du glow": "Glow colour",
+ "Couleurs écran": "Screen colours",
+ "Courbure (0–0.35)": "Curvature (0–0.35)",
+ "Disque %": "Disk %",
+ "Débit ↑": "Speed ↑",
+ "Débit ↓": "Speed ↓",
+ "Dégradé — arrivée": "Gradient — to",
+ "Dégradé — départ": "Gradient — from",
+ "Détournement des barres (label + seuils par slot)": "Bar override (label + thresholds per slot)",
+ "Effet CRT (WebGL — desktop)": "CRT effect (WebGL — desktop)",
+ "En-tête": "Header",
+ "En-tête — effets avancés": "Header — advanced effects",
+ "Espacement": "Spacing",
+ "Ex fond : #001208 vert phosphore · #120a00 ambre · #001018 cyan sombre": "Background examples: #001208 phosphor green · #120a00 amber · #001018 dark cyan",
+ "Flicker (0–0.2)": "Flicker (0–0.2)",
+ "Fond de dalle": "Panel background",
+ "Fond vide = dalle neutre sombre (va avec tous les thèmes). Couleurs vides = défauts cyan/vert.": "Empty background = dark neutral panel (suits every theme). Empty colours = cyan/green defaults.",
+ "Fond vide = dalle neutre sombre (va avec tous les thèmes). Couleurs vides = défauts cyan/vert.": "Empty background = dark neutral panel (suits every theme). Empty colours = cyan/green defaults.",
+ "GPU %": "GPU %",
+ "GPU HOT": "GPU HOT",
+ "GPU WARN": "GPU WARN",
+ "Glitch burst (0–1)": "Glitch burst (0–1)",
+ "Glow du titre": "Title glow",
+ "Grain (0–20)": "Grain (0–20)",
+ "Grille RGB (0–1)": "RGB mask (0–1)",
+ "Général": "General",
+ "Hôte (prompt)": "Host (prompt)",
+ "Icône": "Icon",
+ "Italique": "Italic",
+ "Kernel": "Kernel",
+ "Libellé BATT": "BATT label",
+ "Libellé BATT2": "BATT2 label",
+ "Libellé CPU": "CPU label",
+ "Libellé DSK": "DSK label",
+ "Libellé GPU": "GPU label",
+ "Libellé LOAD": "LOAD label",
+ "Libellé RAM": "RAM label",
+ "Libellé TEMP": "TEMP label",
+ "Libellé du chiffre \"process\"": "Label for the \"process\" count",
+ "Liseret vide = suit le thème (--rgb-primary-color) comme avant.": "Empty frame = follows the theme (--rgb-primary-color), as before.",
+ "Liseret écran": "Screen frame",
+ "Load average": "Load average",
+ "Luminosité (0–1)": "Brightness (0–1)",
+ "MAJ": "upd",
+ "MAJ en attente": "Pending updates",
+ "Majuscules": "Uppercase",
+ "Mêmes réglages que sur les autres cards néon (entities/climate).": "Same settings as the other neon cards (entities/climate).",
+ "Nb cœurs (pour load %)": "Core count (for load %)",
+ "OS": "OS",
+ "Ombre titre (text-shadow)": "Title shadow (text-shadow)",
+ "Ondulation (0–5)": "Waviness (0–5)",
+ "Police": "Font",
+ "Principal (labels/barres)": "Main (labels/bars)",
+ "Process total": "Total processes",
+ "Prompt": "Prompt",
+ "Période rafale (s)": "Burst period (s)",
+ "Quand CPU et RAM sont tous les deux indisponibles : SIGNAL LOST / NO CARRIER, mauvaise réception. Défauts réglés à l'œil.": "When CPU and RAM are both unavailable: SIGNAL LOST / NO CARRIER, bad reception. Defaults tuned by eye.",
+ "Quand CPU et RAM sont tous les deux indisponibles : SIGNAL LOST / NO CARRIER, mauvaise réception. Défauts réglés à l'œil.": "When CPU and RAM are both unavailable: SIGNAL LOST / NO CARRIER, bad reception. Defaults tuned by eye.",
+ "RAM %": "RAM %",
+ "RGB split (px)": "RGB split (px)",
+ "Rafale (0–3)": "Burst (0–3)",
+ "Reboot requis (binary)": "Reboot required (binary)",
+ "Release upgrade": "Release upgrade",
+ "Renomme une barre et/ou change ses seuils sans toucher l'entité — utile pour brancher autre chose qu'attendu (ex : une batterie dans le slot GPU) sans fausse alerte à 85%. La logique reste \"haut = mauvais\" pour ces slots (CPU/GPU/LOAD/RAM/DSK/TEMP) — la batterie garde sa logique inversée. Laisser vide = comportement d'origine.": "Rename a bar and/or change its thresholds without touching the entity — handy to plug in something unexpected (e.g. a battery in the GPU slot) without a false alert at 85%. The logic stays \"high = bad\" for these slots (CPU/GPU/LOAD/RAM/DSK/TEMP) — the battery keeps its inverted logic. Leave empty = original behaviour.",
+ "Rémanence phosphore (0–1)": "Phosphor persistence (0–1)",
+ "Réseau ↑ (TX)": "Network ↑ (TX)",
+ "Réseau ↓ (RX)": "Network ↓ (RX)",
+ "Scanlines (0–1)": "Scanlines (0–1)",
+ "Scintillement du titre": "Title flicker",
+ "Seuils d'alerte": "Alert thresholds",
+ "Si renseignée, l'ombre remplace le glow ci-dessous.": "If set, the shadow replaces the glow below.",
+ "Système / OS (reporter MQTT)": "System / OS (MQTT reporter)",
+ "Taille de l'icône": "Icon size",
+ "Taille du glow": "Glow size",
+ "Taille titre": "Title size",
+ "Temp CRIT °C": "Temp CRIT °C",
+ "Temp WARN °C": "Temp WARN °C",
+ "Température / Batterie / Réseau": "Temperature / Battery / Network",
+ "Température / Batteries / Réseau": "Temperature / Batteries / Network",
+ "Température CPU": "CPU temperature",
+ "Texte défaut": "Default text",
+ "Texte secondaire (dim)": "Secondary text (dim)",
+ "Titre": "Title",
+ "Titre en dégradé": "Gradient title",
+ "Uptime": "Uptime",
+ "Vitre CRT rendue par shader. Sur iPad/mobile : repli CSS automatique.": "CRT glass rendered by a shader. On iPad/mobile: automatic CSS fallback.",
+ "batterie": "battery",
+ "disponible": "available",
+ "défaut : couleur du titre": "default: title colour",
+ "défaut : taille du titre": "default: title size",
+ "température": "temperature",
+ "Écran « machine injoignable »": "“Machine unreachable” screen",
+ "Épaisseur": "Weight",
+ "à jour": "up to date",
+ "— thème HA —": "— HA theme —"
+};
+const _t = (fr) => {
+  if (_lang === 'fr' || fr == null || fr === '') return fr;
+  const k = String(fr).replace(/\s+/g, ' ').trim();
+  return _EN[k] ?? fr;
+};
+const _setLang = (h) => {
+  const l = /^fr/i.test(String(h?.locale?.language || h?.language || '')) ? 'fr' : 'en';
+  if (l === _lang) return false;
+  _lang = l; return true;
+};
+
 class LinuxTerminalCardWebgl extends HTMLElement {
   constructor(){ super(); this.attachShadow({ mode: 'open' }); this._id = (Math.random()*1e4|0); this._catPending = new Set(); }
 
@@ -462,7 +588,7 @@ class LinuxTerminalCardWebgl extends HTMLElement {
   }
 
   set hass(h){
-    this._hass = h;
+    this._hass = h; _setLang(h);
     if (!this._rendered){ this._render(); return; }
     // coalescing RAF (MD §5) pour les DEUX chemins : HA pousse hass à CHAQUE event du bus
     // (toutes entités confondues) -> sans coalescing, _sys()+stringify tournent en rafale
@@ -1168,22 +1294,22 @@ class LinuxTerminalCardWebgl extends HTMLElement {
     const segsUp = [ { t:'up', c:'k' }, { t:upTxt, c:'dim' } ];
     if (s.updates != null){
       segsUp.push({ t:' · ', c:'dim' });
-      segsUp.push(s.updates > 0 ? { t:s.updates + ' MAJ', c:'amb' } : { t:'à jour', c:'grn' });
+      segsUp.push(s.updates > 0 ? { t:s.updates + ' ' + _t('MAJ'), c:'amb' } : { t:_t('à jour'), c:'grn' });
     }
     if (s.reboot) segsUp.push({ t:' · reboot *', c:'amb' });
     L.push({ type:'text', segs:segsUp });
 
-    if (s.release) L.push({ type:'text', segs:[{ t:'⬆ Ubuntu ' + s.release + ' disponible', c:'amb' }] });
+    if (s.release) L.push({ type:'text', segs:[{ t:'⬆ Ubuntu ' + s.release + ' ' + _t('disponible'), c:'amb' }] });
 
     if (al.lvl === 'crit'){
       const parts = [];
       if (al.critTemp) parts.push(`temp ${Math.round(s.temp)}°`);
-      if (al.critBatt) parts.push(`batterie ${Math.round(s.batt)}%`);
-      L.push({ type:'text', segs:[{ t:'🔴 CRITIQUE: ' + parts.join(' · '), c:'red' }], bold:true });
+      if (al.critBatt) parts.push(`${_t('batterie')} ${Math.round(s.batt)}%`);
+      L.push({ type:'text', segs:[{ t:'🔴 ' + _t('CRITIQUE') + ': ' + parts.join(' · '), c:'red' }], bold:true });
     } else if (al.lvl === 'warn'){
       const parts = [];
-      if (al.warnTemp) parts.push(`température ${Math.round(s.temp)}°`);
-      if (al.warnBatt) parts.push(`batterie ${Math.round(s.batt)}%`);
+      if (al.warnTemp) parts.push(`${_t('température')} ${Math.round(s.temp)}°`);
+      if (al.warnBatt) parts.push(`${_t('batterie')} ${Math.round(s.batt)}%`);
       L.push({ type:'text', segs:[{ t:'⚠ WARN: ' + parts.join(' · '), c:'amb' }], bold:true });
     }
 
@@ -1470,19 +1596,19 @@ class LinuxTerminalCardWebgl extends HTMLElement {
     if (al.lvl === 'crit'){
       const parts = [];
       if (al.critTemp) parts.push(`temp ${Math.round(s.temp)}°`);
-      if (al.critBatt) parts.push(`batterie ${Math.round(s.batt)}%`);
-      warnLines = `<div class="ln alert crit">🔴 CRITIQUE: ${parts.join(' · ')}</div>`;
+      if (al.critBatt) parts.push(`${_t('batterie')} ${Math.round(s.batt)}%`);
+      warnLines = `<div class="ln alert crit">🔴 ${_t('CRITIQUE')}: ${parts.join(' · ')}</div>`;
     } else if (al.lvl === 'warn'){
       const parts = [];
-      if (al.warnTemp) parts.push(`température ${Math.round(s.temp)}°`);
-      if (al.warnBatt) parts.push(`batterie ${Math.round(s.batt)}%`);
+      if (al.warnTemp) parts.push(`${_t('température')} ${Math.round(s.temp)}°`);
+      if (al.warnBatt) parts.push(`${_t('batterie')} ${Math.round(s.batt)}%`);
       warnLines = `<div class="ln alert warn">⚠ WARN: ${parts.join(' · ')}</div>`;
     }
     const updTxt = s.updates == null ? '' :
-      (s.updates > 0 ? `<span class="updN">${s.updates} MAJ</span>` : `<span class="upd0">à jour</span>`);
+      (s.updates > 0 ? `<span class="updN">${s.updates} ${_t('MAJ')}</span>` : `<span class="upd0">${_t('à jour')}</span>`);
     const rebootTxt = s.reboot ? `<span class="reboot"> · reboot *</span>` : '';
     const releaseLine = s.release
-      ? `<div class="ln alert warn">⬆ Ubuntu ${_esc(s.release)} disponible (do-release-upgrade)</div>` : '';
+      ? `<div class="ln alert warn">⬆ Ubuntu ${_esc(s.release)} ${_t('disponible')} (do-release-upgrade)</div>` : '';
 
     // Miroir DOM de l'écran offline (cf _buildLines) : sans WebGL, c'est CE rendu que
     // l'on voit — il doit dire exactement la même chose, barres comprises (aucune).
@@ -1730,7 +1856,7 @@ const STYLES = `
  * ═══════════════════════════════════════════════════════════════════════════ */
 class LinuxTerminalCardWebglEditor extends HTMLElement {
   setConfig(c){ this._config = { ...c }; if (!this._rendered){ this._rendered = true; this._render(); } else this._syncValues(); }
-  set hass(h){ this._hass = h; this._refreshLists(); }
+  set hass(h){ this._hass = h; if (_setLang(h) && this._rendered) this._render(); this._refreshLists(); }
 
   _fire(){ this.dispatchEvent(new CustomEvent('config-changed', { detail: { config: this._config }, bubbles: true, composed: true })); }
   _set(key, val){
@@ -1769,13 +1895,13 @@ class LinuxTerminalCardWebglEditor extends HTMLElement {
     return parts.length === 2 ? ((c[parts[0]] || {})[parts[1]] ?? '') : (c[key] ?? '');
   }
   _text(label, key, ph){
-    return `<div class="field"><label>${_esc(label)}</label>
-      <input data-key="${_esc(key)}" value="${_esc(this._val(key))}" placeholder="${_esc(ph || '')}" autocomplete="off"/></div>`;
+    return `<div class="field"><label>${_esc(_t(label))}</label>
+      <input data-key="${_esc(key)}" value="${_esc(this._val(key))}" placeholder="${_esc(_t(ph || ''))}" autocomplete="off"/></div>`;
   }
   _entity(label, key, ph){
     const lid = 'dl_' + key.replace(/\W/g, '');
-    return `<div class="field"><label>${_esc(label)}</label>
-      <input data-key="${_esc(key)}" value="${_esc(this._val(key))}" list="${_esc(lid)}" placeholder="${_esc(ph || 'sensor.…')}" autocomplete="off"/>
+    return `<div class="field"><label>${_esc(_t(label))}</label>
+      <input data-key="${_esc(key)}" value="${_esc(this._val(key))}" list="${_esc(lid)}" placeholder="${_esc(_t(ph || 'sensor.…'))}" autocomplete="off"/>
       <datalist id="${lid}"></datalist></div>`;
   }
   _hexColor(v){
@@ -1803,17 +1929,17 @@ class LinuxTerminalCardWebglEditor extends HTMLElement {
   _color(label, key, ph){
     const v = this._val(key);
     const swatchHex = this._hexColor(v) || (ph ? this._resolveColor(ph) : null) || '#b482ff';
-    return `<div class="field"><label>${_esc(label)}</label>
+    return `<div class="field"><label>${_esc(_t(label))}</label>
       <div class="color-row">
-        <input type="color" data-key="${_esc(key)}" value="${_esc(swatchHex)}" data-ph="${_esc(ph || '')}" class="color-swatch"/>
-        <input type="text" data-key="${_esc(key)}" value="${_esc(v)}" placeholder="${_esc(ph || '#b482ff')}" autocomplete="off" class="color-text"/>
+        <input type="color" data-key="${_esc(key)}" value="${_esc(swatchHex)}" data-ph="${_esc(_t(ph || ''))}" class="color-swatch"/>
+        <input type="text" data-key="${_esc(key)}" value="${_esc(v)}" placeholder="${_esc(_t(ph || '#b482ff'))}" autocomplete="off" class="color-text"/>
       </div></div>`;
   }
   _icon(label, key, ph){
     return `<div class="field">
-      <label>${_esc(label)} — <a href="https://pictogrammers.com/library/mdi/" target="_blank" rel="noopener" style="color:var(--primary-color);font-size:10px">parcourir MDI ↗</a></label>
+      <label>${_esc(_t(label))} — <a href="https://pictogrammers.com/library/mdi/" target="_blank" rel="noopener" style="color:var(--primary-color);font-size:10px">parcourir MDI ↗</a></label>
       <div class="icon-row">
-        <input data-key="${_esc(key)}" value="${_esc(this._val(key))}" placeholder="${_esc(ph || 'mdi:laptop')}" autocomplete="off" class="icon-input"/>
+        <input data-key="${_esc(key)}" value="${_esc(this._val(key))}" placeholder="${_esc(_t(ph || 'mdi:laptop'))}" autocomplete="off" class="icon-input"/>
         <div class="icon-preview" data-preview="${_esc(key)}"></div>
       </div></div>`;
   }
@@ -1822,7 +1948,7 @@ class LinuxTerminalCardWebglEditor extends HTMLElement {
     const checked = v === '' ? !!def : (v === true || v === 'true');
     return `<div class="field toggle-field"><label class="toggle-row">
       <input type="checkbox" data-key="${_esc(key)}" data-bool="1" ${checked ? 'checked' : ''}/>
-      <span>${_esc(label)}</span></label></div>`;
+      <span>${_esc(_t(label))}</span></label></div>`;
   }
   _select(label, key, options, ph){
     const v = this._val(key);
@@ -1831,8 +1957,8 @@ class LinuxTerminalCardWebglEditor extends HTMLElement {
       const [ov, olbl] = Array.isArray(opt) ? opt : [opt, opt];
       return `<option value="${_esc(ov)}" ${v === ov ? 'selected' : ''}>${_esc(olbl)}</option>`;
     }).join('');
-    return `<div class="field"><label>${_esc(label)}</label>
-      <select data-key="${_esc(key)}"><option value="">${_esc(ph || '—')}</option>${opts}</select></div>`;
+    return `<div class="field"><label>${_esc(_t(label))}</label>
+      <select data-key="${_esc(key)}"><option value="">${_esc(_t(ph || '—'))}</option>${opts}</select></div>`;
   }
   _render(){
     this.innerHTML = `
@@ -1860,35 +1986,35 @@ class LinuxTerminalCardWebglEditor extends HTMLElement {
         .hint{font-size:10px;color:var(--secondary-text-color);margin-top:-2px;margin-bottom:8px}
       </style>
       <div class="grid">
-        <div class="group"><div class="group-title">Général</div>
+        <div class="group"><div class="group-title">${_t(`Général`)}</div>
           ${this._text('Hôte (prompt)', 'host', 'user@linux')}
         </div>
-        <ha-expansion-panel outlined header="Effet CRT (WebGL — desktop)">
-          <div class="hint">Vitre CRT rendue par shader. Sur iPad/mobile : repli CSS automatique.</div>
+        <ha-expansion-panel outlined header="${_t(`Effet CRT (WebGL — desktop)`)}">
+          <div class="hint">${_t(`Vitre CRT rendue par shader. Sur iPad/mobile : repli CSS automatique.`)}</div>
           <div class="row2">${this._text('Courbure (0–0.35)', 'crt_curve', '0')}${this._text('Aberration px', 'crt_aberration', '1.8')}</div>
           <div class="row2">${this._text('Scanlines (0–1)', 'crt_scanlines', '0.45')}${this._text('Bloom (0–1)', 'crt_bloom', '0.5')}</div>
           <div class="row2">${this._text('Flicker (0–0.2)', 'crt_flicker', '0.04')}${this._text('Grille RGB (0–1)', 'crt_mask', '0.35')}</div>
           <div class="row2">${this._text('Glitch burst (0–1)', 'crt_glitch', '0.7')}${this._text('Allumage CRT (1/0)', 'crt_boot', '1')}</div>
           <div class="row2">${this._text('Rémanence phosphore (0–1)', 'crt_persist', '0.6')}</div>
         </ha-expansion-panel>
-        <ha-expansion-panel outlined header="Écran « machine injoignable »">
-          <div class="hint">Quand CPU et RAM sont tous les deux indisponibles : SIGNAL LOST / NO CARRIER, mauvaise réception. Défauts réglés à l'œil.</div>
+        <ha-expansion-panel outlined header="${_t(`Écran « machine injoignable »`)}">
+          <div class="hint">${_t(`Quand CPU et RAM sont tous les deux indisponibles : SIGNAL LOST / NO CARRIER, mauvaise réception. Défauts réglés à l'œil.`)}</div>
           <div class="row2">${this._text('Ondulation (0–5)', 'offline_warp', '1.0')}${this._text('Grain (0–20)', 'offline_noise', '6.0')}</div>
           <div class="row2">${this._text('Rafale (0–3)', 'offline_burst', '1.5')}${this._text('Période rafale (s)', 'offline_period', '8')}</div>
           <div class="row2">${this._text('RGB split (px)', 'offline_split', '8.5')}${this._text('Luminosité (0–1)', 'offline_dim', '0.46')}</div>
         </ha-expansion-panel>
-        <ha-expansion-panel outlined header="Couleurs écran">
-          <div class="hint">Fond vide = dalle neutre sombre (va avec tous les thèmes). Couleurs vides = défauts cyan/vert.</div>
+        <ha-expansion-panel outlined header="${_t(`Couleurs écran`)}">
+          <div class="hint">${_t(`Fond vide = dalle neutre sombre (va avec tous les thèmes). Couleurs vides = défauts cyan/vert.`)}</div>
           ${this._color('Fond de dalle', 'screen_bg', '#0e0e13')}
-          <div class="hint" style="margin-top:2px">Ex fond : #001208 vert phosphore · #120a00 ambre · #001018 cyan sombre</div>
+          <div class="hint" style="margin-top:2px">${_t(`Ex fond : #001208 vert phosphore · #120a00 ambre · #001018 cyan sombre`)}</div>
           <div class="row2">${this._color('Principal (labels/barres)', 'col_primary', '#00e5ff')}${this._color('Prompt', 'col_prompt', '#4af2a1')}</div>
           <div class="row2">${this._color('Texte secondaire (dim)', 'col_dim', '#00e5ff')}${this._color('Texte défaut', 'col_txt', '#d9ccff')}</div>
           <div class="row2">${this._color('Alerte WARN', 'col_warn', '#ffad33')}${this._color('Alerte CRIT', 'col_crit', '#ff3d50')}</div>
           <div class="row2">${this._color('Débit ↓', 'col_down', '#00e5ff')}${this._color('Débit ↑', 'col_up', '#c08cff')}</div>
-          <div class="hint">Liseret vide = suit le thème (--rgb-primary-color) comme avant.</div>
+          <div class="hint">${_t(`Liseret vide = suit le thème (--rgb-primary-color) comme avant.`)}</div>
           ${this._color('Liseret écran', 'col_frame', '#00e5ff')}
         </ha-expansion-panel>
-        <div class="group"><div class="group-title">En-tête</div>
+        <div class="group"><div class="group-title">${_t(`En-tête`)}</div>
           ${this._text('Titre', 'header.title', 'Linux PC')}
           ${this._icon('Icône', 'header.icon', 'mdi:laptop')}
           ${this._color('Couleur', 'header.color', '#b482ff')}
@@ -1896,9 +2022,9 @@ class LinuxTerminalCardWebglEditor extends HTMLElement {
           ${this._select('Police', 'header.font', NEON_FONTS, '— thème HA —')}
           ${this._toggle('Majuscules', 'header.uppercase', true)}
         </div>
-        <ha-expansion-panel outlined header="En-tête — effets avancés">
+        <ha-expansion-panel outlined header="${_t(`En-tête — effets avancés`)}">
           ${this._text('Ombre titre (text-shadow)', 'header.title_shadow', '0 0 8px ...')}
-          <div class="hint">Si renseignée, l'ombre remplace le glow ci-dessous.</div>
+          <div class="hint">${_t(`Si renseignée, l'ombre remplace le glow ci-dessous.`)}</div>
           <div class="row2">${this._text('Épaisseur', 'header.font_weight', '600')}${this._text('Espacement', 'header.letter_spacing', '0.02em')}</div>
           ${this._toggle('Italique', 'header.italic', false)}
           ${this._toggle('Titre en dégradé', 'header.gradient', false)}
@@ -1907,9 +2033,9 @@ class LinuxTerminalCardWebglEditor extends HTMLElement {
           <div class="row2">${this._text('Taille du glow', 'header.glow_size', '12')}${this._color('Couleur du glow', 'header.glow_color', 'var(--primary-color)')}</div>
           ${this._toggle('Scintillement du titre', 'header.flicker', false)}
           <div class="row2">${this._color("Couleur de l'icône", 'header.icon_color', 'défaut : couleur du titre')}${this._text("Taille de l'icône", 'header.icon_size', 'défaut : taille du titre')}</div>
-          <div class="hint">Mêmes réglages que sur les autres cards néon (entities/climate).</div>
+          <div class="hint">${_t(`Mêmes réglages que sur les autres cards néon (entities/climate).`)}</div>
         </ha-expansion-panel>
-        <ha-expansion-panel outlined header="Système / OS (reporter MQTT)">
+        <ha-expansion-panel outlined header="${_t(`Système / OS (reporter MQTT)`)}">
           ${this._entity('OS', 'os_entity')}
           ${this._entity('Kernel', 'kernel_entity')}
           ${this._entity('Uptime', 'uptime_entity')}
@@ -1919,7 +2045,7 @@ class LinuxTerminalCardWebglEditor extends HTMLElement {
           ${this._entity('Process total', 'proc_entity')}
           ${this._text('Libellé du chiffre "process"', 'proc_label', 'proc')}
         </ha-expansion-panel>
-        <ha-expansion-panel outlined header="Charge">
+        <ha-expansion-panel outlined header="${_t(`Charge`)}">
           ${this._entity('CPU %', 'cpu_entity')}
           ${this._entity('GPU %', 'gpu_entity')}
           ${this._entity('Load average', 'load_entity')}
@@ -1927,23 +2053,23 @@ class LinuxTerminalCardWebglEditor extends HTMLElement {
           ${this._entity('RAM %', 'ram_entity')}
           ${this._entity('Disque %', 'disk_entity')}
         </ha-expansion-panel>
-        <ha-expansion-panel outlined header="Température / Batteries / Réseau">
+        <ha-expansion-panel outlined header="${_t(`Température / Batteries / Réseau`)}">
           ${this._entity('Température CPU', 'temp_entity')}
           ${this._entity('Batterie %', 'battery_entity')}
           ${this._entity('2e batterie % (optionnel)', 'battery_entity_2')}
           ${this._entity('Réseau ↓ (RX)', 'net_rx_entity')}
           ${this._entity('Réseau ↑ (TX)', 'net_tx_entity')}
         </ha-expansion-panel>
-        <ha-expansion-panel outlined header="Seuils d'alerte">
+        <ha-expansion-panel outlined header="${_t(`Seuils d'alerte`)}">
           <div class="row2">${this._text('Temp WARN °C', 'temp_warn', '65')}${this._text('Temp CRIT °C', 'temp_crit', '85')}</div>
           <div class="row2">${this._text('Batt WARN %', 'batt_warn', '25')}${this._text('Batt CRIT %', 'batt_crit', '10')}</div>
           <div class="row2">${this._text('Batt2 WARN %', 'batt2_warn', '25')}${this._text('Batt2 CRIT %', 'batt2_crit', '10')}</div>
         </ha-expansion-panel>
-        <ha-expansion-panel outlined header="Détournement des barres (label + seuils par slot)">
-          <div class="hint">Renomme une barre et/ou change ses seuils sans toucher l'entité — utile pour brancher
+        <ha-expansion-panel outlined header="${_t(`Détournement des barres (label + seuils par slot)`)}">
+          <div class="hint">${_t(`Renomme une barre et/ou change ses seuils sans toucher l'entité — utile pour brancher
             autre chose qu'attendu (ex : une batterie dans le slot GPU) sans fausse alerte à 85%.
             La logique reste "haut = mauvais" pour ces slots (CPU/GPU/LOAD/RAM/DSK/TEMP) — la batterie garde sa
-            logique inversée. Laisser vide = comportement d'origine.</div>
+            logique inversée. Laisser vide = comportement d'origine.`)}</div>
           <div class="row2">${this._text('Libellé CPU', 'cpu_label', 'CPU')}${this._text('Libellé GPU', 'gpu_label', 'GPU')}</div>
           <div class="row2">${this._text('GPU WARN', 'gpu_warn', '70')}${this._text('GPU HOT', 'gpu_hot', '90')}</div>
           <div class="row2">${this._text('Libellé LOAD', 'load_label', 'LOAD')}${this._text('Libellé RAM', 'ram_label', 'RAM')}</div>
