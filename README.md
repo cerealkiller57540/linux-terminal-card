@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🖥️ Linux Terminal Card
+<img src="https://raw.githubusercontent.com/cerealkiller57540/linux-terminal-card/main/images/logo.png" alt="Linux Terminal Card" width="480">
 
 **A sci-fi CRT terminal for Home Assistant that shows the health of a Linux PC: CPU, GPU, load, RAM, disk, temperature, battery, network and pending updates, with a ghost cat called Glitch.**
 
