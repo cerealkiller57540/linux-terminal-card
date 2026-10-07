@@ -7,7 +7,7 @@
  *   scanlines + rolling bar, bloom additif (phosphore qui bave), flicker/jitter de signal.
  *   Une couche DOM transparente au-dessus capte les clics (more-info par ligne/barre).
  *
- * Mobile / iPad : WebGL activé aussi (à l'essai, 2026-07-19) — fallback CSS uniquement si
+ * Mobile / iPad : WebGL activé aussi — fallback CSS uniquement si
  *   getContext('webgl') échoue réellement sur l'appareil.
  *
  * Intensité par défaut : CINÉMATIQUE DOSÉ — courbure légère, texte NET, aberration aux bords.
@@ -70,7 +70,7 @@
  *   toujours donner au swatch un hex réel, appliqué aux 3 points d'alimentation (rendu, frappe,
  *   _syncValues) ; (3) sélecteur de police muet : appel _select() avec label/key inversés,
  *   écrivait dans une clé 'Police' jamais lue au lieu de 'header.font' ; (4) défauts épaisseur/
- *   espacement pas alignés sur le rendu voulu pour cette card — fallback CSS 400→600 et
+ *   espacement — fallback CSS 400→600 et
  *   .05em→0.02em (placeholders éditeur synchronisés).
  *
  * v1.9 (2026-08-24) : 2 fixes supplémentaires sur le header canonique —
@@ -83,8 +83,7 @@
  *   de drop-shadow (pas de halo blanc central) alors que le glow du titre en a 4 (_neonGlow) →
  *   les deux glowaient visiblement différemment. Icône alignée sur les mêmes 4 couches que le
  *   canon climate-webgl/markdown (facteurs .2/.4/.8/1, vérifiés identiques dans les 2 fichiers).
- *   Retour « trop fort » : cause réelle = un drop-shadow(0 0 5px) câblé en dur et permanent
- *   sur .hdr-icon (indépendant de hdr.glow) qui se cumulait avec les 4 couches → retiré.
+ *   Retiré un drop-shadow(0 0 5px) permanent sur .hdr-icon qui se cumulait avec les 4 couches.
  */
 (() => {
 
@@ -119,9 +118,7 @@ const NEON_FONTS = [
 // Charge la police choisie via un <link> Google Fonts injecté dans le <head> du document (pas
 // dans le shadowRoot — les fonts se chargent au niveau document, pas par instance de card). Cache
 // module-level partagé par toutes les instances. Pattern copié à l'identique de
-// neon-switch-card.js::_loadGoogleFont (cf skill ha-neon-css, piège "police choisie dans
-// l'éditeur silencieusement jamais chargée" — même dette constatée sur entities/climate/storey,
-// qui proposent NEON_FONTS mais ne chargent jamais que Orbitron en dur, voire rien).
+// neon-switch-card.js::_loadGoogleFont.
 // ⚠️ Google Fonts veut des '+' pour les espaces dans le nom de famille, PAS '%20' —
 // encodeURIComponent seul aurait laissé la moitié des polices (« Share Tech Mono », « Bebas
 // Neue », « Space Grotesk », « DM Sans », « Playfair Display ») silencieusement introuvables.
@@ -468,8 +465,7 @@ const _EN = {
  "Process total": "Total processes",
  "Prompt": "Prompt",
  "Période rafale (s)": "Burst period (s)",
- "Quand CPU et RAM sont tous les deux indisponibles : SIGNAL LOST / NO CARRIER, mauvaise réception. Défauts réglés à l'œil.": "When CPU and RAM are both unavailable: SIGNAL LOST / NO CARRIER, bad reception. Defaults tuned by eye.",
- "Quand CPU et RAM sont tous les deux indisponibles : SIGNAL LOST / NO CARRIER, mauvaise réception. Défauts réglés à l'œil.": "When CPU and RAM are both unavailable: SIGNAL LOST / NO CARRIER, bad reception. Defaults tuned by eye.",
+ "Quand CPU et RAM sont tous les deux indisponibles : SIGNAL LOST / NO CARRIER, mauvaise réception.": "When CPU and RAM are both unavailable: SIGNAL LOST / NO CARRIER, bad reception.",
  "RAM %": "RAM %",
  "RGB split (px)": "RGB split (px)",
  "Rafale (0–3)": "Burst (0–3)",
@@ -765,11 +761,11 @@ class LinuxTerminalCardWebgl extends HTMLElement {
     // col_frame permet de le décoréler du thème (couleur fixe, indép. des variantes claires/sombres).
     const frameRgb = this._hexToRgb(c.col_frame);
 
-    // WebGL partout (y compris iPad/Android) — à l'essai, cf mémoire project_linux_terminal_card_webgl.
+    // WebGL partout (y compris iPad/Android).
     // getContext('webgl') échouant reste couvert par le fallback CSS (_initGl -> _render si !gl).
     // ⚠ `??=` et pas `=` : _initGl pose _webgl=false puis rappelle _render(). Une affectation
     // sèche le remettait à true → _initGl retentait → boucle, et le fallback CSS annoncé
-    // ci-dessus était INATTEIGNABLE sur un navigateur sans WebGL. Vérifié 2026-07-25.
+    // ci-dessus était INATTEIGNABLE sur un navigateur sans WebGL.
     this._webgl ??= true;
 
     // Header canonique (même moteur que neon-entities-card.js / neon-climate-card-webgl.js) :
@@ -794,9 +790,7 @@ class LinuxTerminalCardWebgl extends HTMLElement {
     const hdrIconColor = hdr.icon_color || '';
     const hdrIconSize  = hdr.icon_size || '';
     // 4 couches, identique à _neonGlow() du titre ET au canon neon-markdown-card.js (facteurs
-    // pleins .2/.4/.8/1 vérifiés dans les 2 fichiers). Le "trop fort" signalé venait
-    // d'un drop-shadow(0 0 5px) permanent câblé en dur sur .hdr-icon (indépendant de hdr.glow),
-    // qui se cumulait avec ces 4 couches — retiré, .hdr-icon n'a plus que --ltc-hdr-icon-glow.
+    // pleins .2/.4/.8/1). .hdr-icon n'a que --ltc-hdr-icon-glow : pas de drop-shadow fixe en plus.
     const hdrIconGlow = hdr.glow
       ? `drop-shadow(0 0 ${Math.round(hdrGlowSize*0.2)}px #fff) drop-shadow(0 0 ${Math.round(hdrGlowSize*0.4)}px ${hdrGlowColor}) drop-shadow(0 0 ${Math.round(hdrGlowSize*0.8)}px ${hdrGlowColor}) drop-shadow(0 0 ${hdrGlowSize}px ${hdrGlowColor})`
       : '';
@@ -1004,7 +998,7 @@ class LinuxTerminalCardWebgl extends HTMLElement {
       glitch:_num(cfg.crt_glitch) ?? 0.7,  // intensité des bursts (0 = off)
       boot:  _num(cfg.crt_boot) ?? 1,      // 1 = animation d'allumage au montage
       persist:_num(cfg.crt_persist) ?? 0.6, // rémanence phosphore (0 = off, 1 = trail long)
-      // Écran « liaison morte » — valeurs réglées à l'œil : à ne pas rechoisir au jugé.
+      // Écran « liaison morte » — constantes ajustées visuellement : ne pas les modifier sans revérifier le rendu.
       oWarp:  _num(cfg.offline_warp)   ?? 1.0,  // ondulation lente
       oNoise: _num(cfg.offline_noise)  ?? 6.0,  // grain haute fréquence
       oBurst: _num(cfg.offline_burst)  ?? 1.50, // amplitude de la rafale
@@ -1998,7 +1992,7 @@ class LinuxTerminalCardWebglEditor extends HTMLElement {
           <div class="row2">${this._text('Rémanence phosphore (0–1)', 'crt_persist', '0.6')}</div>
         </ha-expansion-panel>
         <ha-expansion-panel outlined header="${_t(`Écran « machine injoignable »`)}">
-          <div class="hint">${_t(`Quand CPU et RAM sont tous les deux indisponibles : SIGNAL LOST / NO CARRIER, mauvaise réception. Défauts réglés à l'œil.`)}</div>
+          <div class="hint">${_t(`Quand CPU et RAM sont tous les deux indisponibles : SIGNAL LOST / NO CARRIER, mauvaise réception.`)}</div>
           <div class="row2">${this._text('Ondulation (0–5)', 'offline_warp', '1.0')}${this._text('Grain (0–20)', 'offline_noise', '6.0')}</div>
           <div class="row2">${this._text('Rafale (0–3)', 'offline_burst', '1.5')}${this._text('Période rafale (s)', 'offline_period', '8')}</div>
           <div class="row2">${this._text('RGB split (px)', 'offline_split', '8.5')}${this._text('Luminosité (0–1)', 'offline_dim', '0.46')}</div>
