@@ -617,7 +617,7 @@ class LinuxTerminalCardEditor extends HTMLElement {
   // icône MDI — input + lien "parcourir MDI" + preview live (pattern neon-header-card-v2)
   _icon(label, key, ph){
     return `<div class="field">
-      <label>${_t(label)} — <a href="https://pictogrammers.com/library/mdi/" target="_blank" rel="noopener" style="color:var(--primary-color);font-size:10px">parcourir MDI ↗</a></label>
+      <label>${_t(label)} — <a href="https://pictogrammers.com/library/mdi/" target="_blank" rel="noopener" style="color:var(--ned-accent);font-size:10px">parcourir MDI ↗</a></label>
       <div class="icon-row">
         <input data-key="${key}" value="${this._val(key)}" placeholder="${_t(ph || 'mdi:laptop')}" autocomplete="off" class="icon-input"/>
         <div class="icon-preview" data-preview="${key}"></div>
@@ -626,13 +626,17 @@ class LinuxTerminalCardEditor extends HTMLElement {
   _render(){
     this.innerHTML = `
       <style>
+        linux-terminal-card-editor{
+          --ned-label:color-mix(in srgb,var(--primary-text-color) 82%,transparent);
+          --ned-accent:color-mix(in srgb,var(--primary-color) 55%,var(--primary-text-color));
+          --ned-line:color-mix(in srgb,var(--primary-color) 55%,transparent)}
+        linux-terminal-card-editor ha-expansion-panel{--outline-color:var(--ned-line);--expansion-panel-summary-padding:0 12px;color:var(--primary-text-color)}
         *{box-sizing:border-box;font-family:-apple-system,sans-serif}
         .grid{display:flex;flex-direction:column;gap:10px;padding:12px 0}
-        .group{border:1px solid var(--divider-color,#333);border-radius:10px;padding:12px}
-        .group-title{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--secondary-text-color);margin-bottom:10px}
+        .sec{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ned-accent);padding-bottom:4px;border-bottom:1px solid var(--ned-line)}
         .field{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
-        label{font-size:12px;color:var(--secondary-text-color)}
-        input{padding:8px 10px;border:1px solid var(--primary-color,#777);border-radius:7px;background:var(--card-background-color);color:var(--primary-text-color);font-size:13px;width:100%}
+        label{font-size:12px;color:var(--ned-label)}
+        input{padding:8px 10px;border:1px solid var(--ned-line);border-radius:7px;background:var(--card-background-color);color:var(--primary-text-color);font-size:13px;width:100%}
         input:focus{outline:none;box-shadow:0 0 0 1px var(--primary-color)}
         .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         .icon-row{display:flex;gap:8px;align-items:center}
@@ -641,20 +645,19 @@ class LinuxTerminalCardEditor extends HTMLElement {
         .color-row .color-swatch{width:42px;height:34px;flex-shrink:0;padding:2px;cursor:pointer}
         .color-row .color-text{flex:1}
         .icon-preview{width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
-          border:1px solid var(--divider-color,#333);border-radius:7px;color:var(--primary-text-color)}
+          border:1px solid var(--ned-line);border-radius:7px;color:var(--primary-text-color)}
       </style>
       <div class="grid">
-        <div class="group"><div class="group-title">${_t(`Général`)}</div>
+        <div class="sec">${_t(`Général`)}</div>
           ${this._text('Hôte (prompt)', 'host', 'user@linux')}
-        </div>
-        <div class="group"><div class="group-title">${_t(`En-tête`)}</div>
+        <ha-expansion-panel data-header="En-tête">
           ${this._text('Titre', 'header.title', 'Linux PC')}
           ${this._icon('Icône', 'header.icon', 'mdi:laptop')}
           ${this._color('Couleur', 'header.color', '#b482ff')}
           ${this._text('Taille titre', 'header.title_size', '18px')}
           ${this._text('Ombre titre (text-shadow)', 'header.title_shadow', '0 0 8px ...')}
-        </div>
-        <div class="group"><div class="group-title">${_t(`Système / OS (reporter MQTT)`)}</div>
+        </ha-expansion-panel>
+        <ha-expansion-panel data-header="Système / OS (reporter MQTT)" data-ents>
           ${this._entity('OS', 'os_entity')}
           ${this._entity('Kernel', 'kernel_entity')}
           ${this._entity('Uptime', 'uptime_entity')}
@@ -662,26 +665,33 @@ class LinuxTerminalCardEditor extends HTMLElement {
           ${this._entity('Release upgrade', 'release_entity')}
           ${this._entity('Reboot requis (binary)', 'reboot_entity', 'binary_sensor.…')}
           ${this._entity('Process total', 'proc_entity')}
-        </div>
-        <div class="group"><div class="group-title">${_t(`Charge`)}</div>
+        </ha-expansion-panel>
+        <ha-expansion-panel data-header="Charge" data-ents>
           ${this._entity('CPU %', 'cpu_entity')}
           ${this._entity('GPU %', 'gpu_entity')}
           ${this._entity('Load average', 'load_entity')}
           ${this._text('Nb cœurs (pour load %)', 'load_cores', '8')}
           ${this._entity('RAM %', 'ram_entity')}
           ${this._entity('Disque %', 'disk_entity')}
-        </div>
-        <div class="group"><div class="group-title">${_t(`Température / Batterie / Réseau`)}</div>
+        </ha-expansion-panel>
+        <ha-expansion-panel data-header="Température / Batterie / Réseau" data-ents>
           ${this._entity('Température CPU', 'temp_entity')}
           ${this._entity('Batterie %', 'battery_entity')}
           ${this._entity('Réseau ↓ (RX)', 'net_rx_entity')}
           ${this._entity('Réseau ↑ (TX)', 'net_tx_entity')}
-        </div>
-        <div class="group"><div class="group-title">${_t(`Seuils d'alerte`)}</div>
+        </ha-expansion-panel>
+        <ha-expansion-panel data-header="Seuils d'alerte">
           <div class="row2">${this._text('Temp WARN °C', 'temp_warn', '65')}${this._text('Temp CRIT °C', 'temp_crit', '85')}</div>
           <div class="row2">${this._text('Batt WARN %', 'batt_warn', '25')}${this._text('Batt CRIT %', 'batt_crit', '10')}</div>
-        </div>
+        </ha-expansion-panel>
       </div>`;
+    // Propriétés posées après coup (header traduit) ; card neuve sans aucune entité = panneaux capteurs ouverts.
+    const fresh = !Object.keys(this._config || {}).some(k => k.endsWith('_entity') && this._config[k]);
+    this.querySelectorAll('ha-expansion-panel').forEach(p => {
+      p.outlined = true;
+      p.header = _t(p.dataset.header);
+      if (fresh && p.hasAttribute('data-ents')) p.expanded = true;
+    });
     this.querySelectorAll('input[data-key]').forEach(inp =>
       inp.addEventListener('input', () => {
         const val = inp.value.trim();
