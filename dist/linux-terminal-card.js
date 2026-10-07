@@ -750,6 +750,9 @@ console.info('%c 🐧 linux-terminal-card v1.7 %c GLITCH ',
 // Load the WebGL variant shipped in the same folder, so a single
 // dashboard resource registers both cards.
 if (!customElements.get('linux-terminal-card-webgl')) {
-  import(new URL('./linux-terminal-card-webgl.js', import.meta.url).href)
+  // keep the ?hacstag of this resource: without it a HACS update keeps serving the cached variant
+  const u = new URL('./linux-terminal-card-webgl.js', import.meta.url);
+  u.search = new URL(import.meta.url).search;
+  import(u.href)
     .catch(e => console.warn('[linux-terminal-card] WebGL variant not loaded:', e));
 }
