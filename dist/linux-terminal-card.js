@@ -1,4 +1,4 @@
-/* ── linux-terminal-card v1.0 ──
+/* ── linux-terminal-card v1.11.2 ──
  * Sci-fi CRT terminal for a remote Linux PC.
  * Look : écran CRT bombé + scanlines + glow + flicker (technique css-tricks old-timey terminal),
  * palette violet/cyan. "GLITCH" le chat = artefact hologramme (effet Silverhand RGB-split),
@@ -741,7 +741,7 @@ window.customCards.push({
   preview: true,
 });
 
-console.info('%c 🐧 linux-terminal-card v1.7 %c GLITCH ',
+console.info('%c 🐧 linux-terminal-card v1.11.2 %c GLITCH ',
   'background:#6200EA;color:#fff;padding:2px 4px;border-radius:3px 0 0 3px;font-weight:bold;',
   'background:#040811;color:#4AF2A1;padding:2px 4px;border-radius:0 3px 3px 0;');
 

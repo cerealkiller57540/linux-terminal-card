@@ -1,4 +1,4 @@
-/* ── linux-terminal-card-webgl v1.9 ──
+/* ── linux-terminal-card-webgl v1.11.2 ──
  * Variante WEBGL de linux-terminal-card : vrai verre CRT bombé rendu par shader.
  *
  * Desktop : le terminal (texte + barres + GLITCH le chat) est dessiné sur un canvas 2D
@@ -2123,7 +2123,7 @@ if (!window.customCards.some(c => c.type === 'linux-terminal-card-webgl')){
   });
 }
 
-console.info('%c 🐧 linux-terminal-card-webgl v1.9 %c CRT SHADER ',
+console.info('%c 🐧 linux-terminal-card-webgl v1.11.2 %c CRT SHADER ',
   'background:#6200EA;color:#fff;padding:2px 4px;border-radius:3px 0 0 3px;font-weight:bold;',
   'background:#040811;color:#00e5ff;padding:2px 4px;border-radius:0 3px 3px 0;');
 
