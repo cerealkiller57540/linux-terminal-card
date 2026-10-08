@@ -32,9 +32,7 @@ Warnings are graded: an amber or red bar, then a red `CRITICAL` banner (`CRITIQU
 
 ## ✨ Features
 
-- **Two cards in one install**
-  - `linux-terminal-card-webgl`: the real CRT tube, rendered by a WebGL shader (recommended).
-  - `linux-terminal-card`: the same layout in plain CSS, with scanlines, glow and flicker. Pick it if a view already carries many WebGL cards.
+- `linux-terminal-card-webgl`: the real CRT tube, rendered by a WebGL shader.
 - **Metrics**: CPU, GPU, load (as a percentage of your core count), RAM, disk, temperature, battery and a second battery, network down and up, process count.
 - **System line** from sensors of your choice: OS, kernel, uptime, pending updates, release upgrade, reboot required.
 - **Graded alerts**: each bar turns amber then red at its own thresholds; temperature or battery in critical state raises a banner and a red frame.
@@ -54,11 +52,13 @@ Warnings are graded: an amber or red bar, then a red `CRITICAL` banner (`CRITIQU
 2. Download **Linux Terminal Card**.
 3. Reload your browser.
 
-One resource is enough: `linux-terminal-card.js` loads `linux-terminal-card-webgl.js` from the same folder.
+HACS registers one resource, `linux-terminal-card.js`. The card type is `custom:linux-terminal-card-webgl`.
+
+If you used the former CSS card (`custom:linux-terminal-card`), change its type to `custom:linux-terminal-card-webgl`: the CSS version is no longer shipped.
 
 ### Manual
 
-1. Copy both files of [`dist/`](dist) to `config/www/linux-terminal-card/`.
+1. Copy [`dist/linux-terminal-card.js`](dist/linux-terminal-card.js) to `config/www/linux-terminal-card/`.
 2. Add a dashboard resource: URL `/local/linux-terminal-card/linux-terminal-card.js`, type **JavaScript module**.
 
 ## 🚀 Usage
@@ -112,7 +112,7 @@ disk_hot: 95
 
 ## ⚙️ Options
 
-Every entity option is optional: a missing sensor hides its line. Options marked *WebGL* are ignored by the CSS card.
+Every entity option is optional: a missing sensor hides its line.
 
 **Entities**
 
@@ -173,7 +173,7 @@ Every entity option is optional: a missing sensor hides its line. Options marked
 
 **The WebGL card shows the CSS look.** Your browser or WebView has no WebGL, so the card falls back to the CSS rendering. That is expected.
 
-**Some cards go blank on my Android phone.** Android WebViews keep at most 8 WebGL contexts per page and drop the oldest one. This card uses one. If a view has many WebGL cards, use `linux-terminal-card` for some of them.
+**Some cards go blank on my Android phone.** Android WebViews keep at most 8 WebGL contexts per page and drop the oldest one. This card uses one.
 
 **Where do the OS, kernel and update lines come from?** From any sensors you point the options at. The author feeds them from a small script that publishes over MQTT; Glances covers the rest. Without them the lines are hidden.
 
