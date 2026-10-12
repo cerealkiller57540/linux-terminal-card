@@ -169,6 +169,19 @@ Every entity option is optional: a missing sensor hides its line.
 
 **Dead-link screen** (*WebGL*): `offline_dim` (`0.46`), `offline_warp` (`1`), `offline_noise` (`6`), `offline_burst` (`1.5`), `offline_period` (`8` s between bursts) and `offline_split` (`8.5` px of RGB split).
 
+**Log at the prompt** (*WebGL*)
+
+Point `log_entity` at a sensor whose attribute holds recent log lines: each new line is typed after the prompt, then cleared. With `journal: true` the card becomes a scrolling log (like `tail -f`): new lines are typed, then scroll up.
+
+| Option | Default | Description |
+|---|---|---|
+| `log_entity` | — | Sensor holding the lines |
+| `log_attribute` | `lines` | Attribute to read: a list, or multi-line text |
+| `log_type_ms` | `55` | Typing speed, in ms per character |
+| `log_hold` | `4` (`1.5` in journal mode) | Seconds before Enter / clearing |
+| `journal` | `false` | Dedicated scrolling log instead of the system screen |
+| `journal_lines` | `10` | Lines kept in journal mode (3 to 30) |
+
 ## ❓ FAQ
 
 **The WebGL card shows the CSS look.** Your browser or WebView has no WebGL, so the card falls back to the CSS rendering. That is expected.

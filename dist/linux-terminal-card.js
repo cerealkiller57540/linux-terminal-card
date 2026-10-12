@@ -1,4 +1,4 @@
-/* ── linux-terminal-card-webgl v1.12.0 ──
+/* ── linux-terminal-card-webgl v1.14.0 ──
  * Variante WEBGL de linux-terminal-card : vrai verre CRT bombé rendu par shader.
  *
  * Desktop : le terminal (texte + barres + GLITCH le chat) est dessiné sur un canvas 2D
@@ -84,6 +84,12 @@
  *   les deux glowaient visiblement différemment. Icône alignée sur les mêmes 4 couches que le
  *   canon climate-webgl/markdown (facteurs .2/.4/.8/1, vérifiés identiques dans les 2 fichiers).
  *   Retiré un drop-shadow(0 0 5px) permanent sur .hdr-icon qui se cumulait avec les 4 couches.
+ *
+ * v1.13.0 (2026-10-12) : journal au prompt — log_entity / log_attribute (liste ou texte
+ *   multi-lignes) tapé caractère par caractère après `:~$` (log_type_ms, log_hold), texte
+ *   dessiné par fillText seulement ; repli CSS = dernière ligne figée, échappée.
+ * v1.14.0 (2026-10-12) : mode journal (journal: true) — card dédiée façon tail -f : journal_lines
+ *   lignes d'historique, la nouvelle ligne se tape au prompt puis remonte à l'« Entrée ».
  */
 (() => {
 
@@ -133,6 +139,7 @@ function _loadGoogleFont(family){
 }
 
 /* ── helpers ──────────────────────────────────────────────────────────── */
+function _on(v){ return v === true || v === 'true'; }
 function _num(v){ const n = parseFloat(v); return isNaN(n) ? null : n; }
 function _esc(v){ return String(v ?? '').replace(/[&<>"']/g, ch => ({
   '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
@@ -436,6 +443,15 @@ const _EN = {
  "Grille RGB (0–1)": "RGB mask (0–1)",
  "Général": "General",
  "Hôte (prompt)": "Host (prompt)",
+ "Journal au prompt": "Log at the prompt",
+ "Tape au prompt les lignes d'un attribut (liste ou texte multi-lignes). Vide = curseur seul.": "Types the lines of an attribute at the prompt (list or multi-line text). Empty = cursor only.",
+ "Mode journal : l'écran n'affiche que le journal, façon tail -f.": "Journal mode: the screen shows only the log, tail -f style.",
+ "Entité journal": "Log entity",
+ "Attribut": "Attribute",
+ "Frappe (ms/caractère)": "Typing (ms/char)",
+ "Maintien (s)": "Hold (s)",
+ "Mode journal (card dédiée)": "Journal mode (dedicated card)",
+ "Lignes affichées (mode journal)": "Lines shown (journal mode)",
  "Icône": "Icon",
  "Italique": "Italic",
  "Kernel": "Kernel",
@@ -656,6 +672,7 @@ class LinuxTerminalCardWebgl extends HTMLElement {
     if (this._hass && this.isConnected) this._render();
   }
 
+  getGridOptions() { return { columns: 12, min_columns: 6 }; }
   getCardSize(){ return 5; }
   static getConfigElement(){ return document.createElement('linux-terminal-card-webgl-editor'); }
   static getStubConfig(){
@@ -720,7 +737,7 @@ class LinuxTerminalCardWebgl extends HTMLElement {
     // Offline = les métriques vitales sont mortes ensemble. Une seule qui tombe = capteur
     // capricieux, pas une machine éteinte : il faut CPU *et* RAM pour conclure.
     const cpuE = this._ent(c.cpu_entity), ramE = this._ent(c.ram_entity);
-    const offline = !!(cpuE?.dead && ramE?.dead);
+    const offline = !_on(c.journal) && !!(cpuE?.dead && ramE?.dead);
     // Dernier contact = dernier changement d'état du CPU (l'entité la plus bavarde quand ça vit).
     const lastSeen = offline ? (cpuE?.since || ramE?.since || null) : null;
     const reboot = this._ent(c.reboot_entity)?.v === 'on';
@@ -984,6 +1001,66 @@ class LinuxTerminalCardWebgl extends HTMLElement {
     this._loopGl();          // boucle d'animation shader
   }
 
+  // lignes du journal (log_entity / log_attribute) : liste, ou texte multi-lignes
+  _logLines(){
+    const c = this._config, st = c.log_entity && this._hass?.states?.[c.log_entity];
+    if (!st) return [];
+    const v = st.attributes?.[c.log_attribute || 'lines'];
+    const arr = Array.isArray(v) ? v : (typeof v === 'string' ? v.split('\n') : []);
+    return arr.map(x => String(x ?? '').trim()).filter(Boolean);
+  }
+
+  // ligne en cours de frappe au prompt : { txt, n (caractères visibles), typing }.
+  // Une nouvelle liste reprend à sa première ligne inédite ; sinon on boucle.
+  _logTick(nowT){
+    if (_on(this._config.journal)) return this._journalTick(nowT);
+    const L = this._logLines();
+    if (!L.length) return null;
+    const lg = this._log || (this._log = { list: [], i: 0, t0: nowT });
+    if (L.join('\n') !== lg.list.join('\n')){
+      const old = new Set(lg.list);
+      const fresh = L.findIndex(x => !old.has(x));
+      if (lg.list.length && fresh < 0){ lg.list = L; lg.i = Math.min(lg.i, L.length - 1); }
+      else { lg.list = L; lg.i = Math.max(0, fresh); lg.t0 = nowT; }
+    }
+    const typeMs = Math.max(5, this._fx.logType), holdMs = Math.max(0.5, this._fx.logHold) * 1000;
+    const txt = lg.list[lg.i];
+    const el = nowT - lg.t0, typeDur = txt.length * typeMs;
+    if (el >= typeDur + holdMs + 350){
+      lg.i = (lg.i + 1) % lg.list.length; lg.t0 = nowT;
+      return { txt: lg.list[lg.i], n: 0, typing: true };
+    }
+    if (el >= typeDur + holdMs) return { txt, n: 0, typing: false };   // ligne effacée, court silence
+    return { txt, n: Math.min(txt.length, Math.floor(el / typeMs)), typing: el < typeDur };
+  }
+
+  // mode journal : historique + file d'attente ; chaque ligne tapée remonte à l'« Entrée »
+  _journalTick(nowT){
+    const L = this._logLines(), N = this._fx.jLines;
+    const j = this._jr || (this._jr = { list: [], hist: [], q: [], t0: nowT, seq: 0 });
+    if (L.join('\n') !== j.list.join('\n')){
+      if (!j.list.length){ j.hist = L.slice(0, -1).slice(-(N - 1)); j.q = L.slice(-1); j.t0 = nowT; }
+      else {
+        const old = new Set(j.list);
+        const fresh = L.filter(x => !old.has(x));
+        if (!j.q.length && fresh.length) j.t0 = nowT;
+        j.q.push(...fresh);
+        // rafale plus longue que l'historique : les plus anciennes passent sans être tapées
+        while (j.q.length > N){ j.hist.push(j.q.shift()); j.t0 = nowT; }
+        j.hist = j.hist.slice(-(N - 1));
+      }
+      j.list = L; j.seq++;
+    }
+    if (!j.q.length) return { txt: '', n: 0, typing: false };
+    const typeMs = Math.max(5, this._fx.logType), holdMs = Math.max(0.2, this._fx.logHold) * 1000;
+    const txt = j.q[0], el = nowT - j.t0, typeDur = txt.length * typeMs;
+    if (el >= typeDur + holdMs){
+      j.hist.push(j.q.shift()); j.hist = j.hist.slice(-(N - 1)); j.t0 = nowT; j.seq++;
+      return { txt: '', n: 0, typing: false };
+    }
+    return { txt, n: Math.min(txt.length, Math.floor(el / typeMs)), typing: el < typeDur };
+  }
+
   // réglages CRT normalisés — l'éditeur stocke des STRINGS ("0.2") : _num les convertit,
   // défauts centralisés (une seule source pour _initGl ET _applyLiveConfig)
   _readFx(){
@@ -1005,6 +1082,9 @@ class LinuxTerminalCardWebgl extends HTMLElement {
       oPeriod:_num(cfg.offline_period) ?? 8.0,  // secondes entre deux rafales
       oSplit: _num(cfg.offline_split)  ?? 8.5,  // RGB split, en pixels
       oDim:   _num(cfg.offline_dim)    ?? 0.46, // luminosité de l'écran mort
+      logType: _num(cfg.log_type_ms) ?? 55,   // ms par caractère tapé au prompt
+      logHold: _num(cfg.log_hold)    ?? (_on(cfg.journal) ? 1.5 : 4),  // s avant Entrée / effacement
+      jLines: Math.max(3, Math.min(30, Math.round(_num(cfg.journal_lines) ?? 10))),  // historique du mode journal
     };
   }
 
@@ -1156,6 +1236,9 @@ class LinuxTerminalCardWebgl extends HTMLElement {
     // Purge des morts ICI : sinon un chat fini reste dans le tableau jusqu'au prochain
     // spawn (7-15 s) et maintient un re-raster + upload texture à 60 fps pour rien.
     // Fait AVANT la passe rémanence : la texture fraîche doit être prête avant le max().
+    this._logView = (this._s && !this._s.offline) ? this._logTick(nowT) : null;
+    // journal : une ligne validée remonte dans l'historique -> nouvelle liste de lignes
+    if (this._jr && this._jr.seq !== this._jSeq){ this._jSeq = this._jr.seq; this._buildLines(); }
     if (this._cats.length){
       this._rasterize();
       if (this._cats.some(cat => cat.dead)) this._cats = this._cats.filter(cat => !cat.dead);
@@ -1163,7 +1246,8 @@ class LinuxTerminalCardWebgl extends HTMLElement {
       // curseur du prompt : dessiné selon l'horloge dans _rasterize -> sans re-raster
       // périodique il reste FIGÉ. 2 re-rasters/s suffisent (vs 60 pendant les chats).
       const blink = Math.floor(nowT / 530) % 2;
-      if (blink !== this._blink){ this._blink = blink; this._rasterize(); }
+      const lk = this._logView ? (this._jr ? 'j' + this._jr.seq : this._log.i) + ':' + this._logView.n : '';
+      if (blink !== this._blink || lk !== this._logKey){ this._blink = blink; this._logKey = lk; this._rasterize(); }
     }
 
     // ── passe rémanence phosphore (ping-pong FBO) : accum = max(frais, accum × decay) ──
@@ -1263,6 +1347,15 @@ class LinuxTerminalCardWebgl extends HTMLElement {
     const fmtRate = v => v == null ? '—' : (v < 0.01 ? '<0.01' : v.toFixed(2));
 
     const L = [];   // { type, ... , ent }
+
+    if (_on(c.journal)){
+      const N = this._fx.jLines, hist = this._jr ? this._jr.hist : this._logLines().slice(-(N - 1));
+      for (let k = 0; k < N - 1 - hist.length; k++) L.push({ type:'text', segs:[] });
+      for (const t of hist) L.push({ type:'log', txt:t });
+      L.push({ type:'prompt', host });
+      this._lines = L;
+      return;
+    }
 
     // ── Machine injoignable : écran diégétique, le tube reste allumé mais la liaison est morte.
     // Surtout PAS de barres : une colonne de « — » se lit comme une card cassée, pas comme un PC éteint.
@@ -1378,6 +1471,21 @@ class LinuxTerminalCardWebgl extends HTMLElement {
           ctx.fillText(sg.t, x, y);
           x += ctx.measureText(sg.t).width;
         }
+      } else if (ln.type === 'log'){
+        setFont(false);
+        const room = W - 2*padX;
+        let t = ln.txt;
+        if (ctx.measureText(t).width > room){
+          while (t.length > 1 && ctx.measureText(t + '…').width > room) t = t.slice(0, -1);
+          t += '…';
+        }
+        const cut = t.search(/\$ |> | /);
+        const head = cut > 0 ? t.slice(0, cut) : '', rest = cut > 0 ? t.slice(cut) : t;
+        ctx.fillStyle = PAL.cy; ctx.shadowBlur = 4*dpr;
+        ctx.fillText(head, padX, y);
+        ctx.fillStyle = PAL.txt; ctx.globalAlpha = 0.8;
+        ctx.fillText(rest, padX + ctx.measureText(head).width, y);
+        ctx.globalAlpha = 1;
       } else if (ln.type === 'net'){
         setFont(false);
         let x = padX;
@@ -1399,9 +1507,27 @@ class LinuxTerminalCardWebgl extends HTMLElement {
           ctx.fillStyle = PAL.red; ctx.shadowBlur = 5*dpr; ctx.globalAlpha = 0.72;
           ctx.fillText(ln.tail, padX + wHost + wSep, y);
           ctx.globalAlpha = 1;
-        } else if (Math.floor(performance.now()/530) % 2 === 0){
-          ctx.fillStyle = PAL.grn; ctx.shadowBlur = 8*dpr;
-          ctx.fillRect(padX + wHost + wSep, y + 1*dpr, fs*0.55, fs);
+        } else {
+          let cx = padX + wHost + wSep;
+          const lv = this._logView;
+          if (lv && lv.n > 0){
+            // trop long pour la ligne : on garde la fin, comme un shell qui défile sous le curseur
+            const room = W - padX - cx - fs*0.8;
+            let t = lv.txt.slice(0, lv.n);
+            if (ctx.measureText(t).width > room){
+              let a = 0;
+              while (a < t.length - 1 && ctx.measureText('…' + t.slice(a)).width > room) a++;
+              t = '…' + t.slice(a);
+            }
+            ctx.fillStyle = PAL.txt; ctx.shadowBlur = 4*dpr;
+            ctx.fillText(t, cx, y);
+            cx += ctx.measureText(t).width;
+          }
+          // curseur plein pendant la frappe, clignotant au repos
+          if ((lv && lv.typing && lv.n > 0) || Math.floor(performance.now()/530) % 2 === 0){
+            ctx.fillStyle = PAL.grn; ctx.shadowBlur = 8*dpr;
+            ctx.fillRect(cx + 1*dpr, y + 1*dpr, fs*0.55, fs);
+          }
         }
       } else if (ln.type === 'bar'){
         // label
@@ -1549,7 +1675,7 @@ class LinuxTerminalCardWebgl extends HTMLElement {
       hit.appendChild(z);
     }
     // clic global -> CPU
-    hit.onclick = () => this._moreInfo(this._config.cpu_entity);
+    hit.onclick = () => this._moreInfo(_on(this._config.journal) ? this._config.log_entity : this._config.cpu_entity);
   }
 
   /* ══════════════════════════════════════════════════════════════════════
@@ -1570,7 +1696,8 @@ class LinuxTerminalCardWebgl extends HTMLElement {
     if (!sr || !this._hass) return;
     const c = this._config, s = this._sys();
     const al = this._alertLevel(s);
-    const key = JSON.stringify(s) + al.lvl;
+    const logLast = _on(c.journal) ? '' : (this._logLines().slice(-1)[0] || '');
+    const key = JSON.stringify(s) + al.lvl + logLast + (_on(c.journal) ? this._logLines().join('|') : '');
     if (key === this._renderKey) return;
     this._renderKey = key;
     this._critical = al.lvl === 'crit';
@@ -1606,7 +1733,9 @@ class LinuxTerminalCardWebgl extends HTMLElement {
 
     // Miroir DOM de l'écran offline (cf _buildLines) : sans WebGL, c'est CE rendu que
     // l'on voit — il doit dire exactement la même chose, barres comprises (aucune).
-    const html = s.offline ? `
+    const html = _on(c.journal) ? `
+      ${this._logLines().slice(-((this._fx || this._readFx()).jLines - 1)).map(t => `<div class="ln logh">${_esc(t)}</div>`).join('')}
+      <div class="ln">${prompt} <span class="cur">█</span></div>` : s.offline ? `
       <div class="ln dim"><span class="k">OS</span> ─────</div>
       <div class="ln dim"><span class="k">up</span> offline</div>
       <div class="ln alert warn">SIGNAL LOST</div>
@@ -1626,7 +1755,7 @@ class LinuxTerminalCardWebgl extends HTMLElement {
       ${this._battRow(s.batt, s.charging, bW, bC, c.battery_entity, c.batt_label || 'BATT')}
       ${this._battRow(s.batt2, s.charging2, _num(c.batt2_warn) ?? 25, _num(c.batt2_crit) ?? 10, c.battery_entity_2, c.batt2_label || 'BATT2')}
       <div class="ln net"><span class="k">net</span> <span class="dn">↓${fmtRate(s.rx)}</span> <span class="up">↑${fmtRate(s.tx)}</span> <span class="dim">Mbit/s</span></div>
-      <div class="ln">${prompt} <span class="cur">█</span></div>`;
+      <div class="ln">${prompt} ${logLast ? `<span class="logl">${_esc(logLast)}</span>` : ''}<span class="cur">█</span></div>`;
 
     const term = sr.getElementById('term');
     if (term){
@@ -1771,6 +1900,9 @@ const STYLES = `
   .term .dn{ color:rgb(var(--ltc-cy)); } .term .up{ color:#c08cff; }
   .term .upd0{ color:rgba(var(--ltc-grn),.85); } .term .updN{ color:rgb(var(--ltc-amb)); font-weight:700; }
   .term .reboot{ color:rgb(var(--ltc-amb)); font-weight:700; }
+  .term .logl{ display:inline-block; max-width:calc(100% - 10em); overflow:hidden; text-overflow:ellipsis;
+    white-space:nowrap; vertical-align:bottom; opacity:.85; }
+  .term .logh{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:.85; }
   .term .cur{ animation:ltc-cursor 1.05s step-end infinite; color:rgb(var(--ltc-grn)); }
   /* liaison morte : pas de clignotement — un curseur qui bat serait un signe de vie */
   .term .nocarrier{ color:rgba(var(--ltc-red),.72); }
@@ -1983,6 +2115,14 @@ class LinuxTerminalCardWebglEditor extends HTMLElement {
         <div class="group"><div class="group-title">${_t(`Général`)}</div>
           ${this._text('Hôte (prompt)', 'host', 'user@linux')}
         </div>
+        <ha-expansion-panel outlined header="${_t(`Journal au prompt`)}">
+          <div class="hint">${_t(`Tape au prompt les lignes d'un attribut (liste ou texte multi-lignes). Vide = curseur seul.`)} ${_t(`Mode journal : l'écran n'affiche que le journal, façon tail -f.`)}</div>
+          ${this._toggle('Mode journal (card dédiée)', 'journal', false)}
+          ${this._entity('Entité journal', 'log_entity', 'sensor.journal_cyber')}
+          ${this._text('Attribut', 'log_attribute', 'lines')}
+          <div class="row2">${this._text('Frappe (ms/caractère)', 'log_type_ms', '55')}${this._text('Maintien (s)', 'log_hold', '4')}</div>
+          ${this._text('Lignes affichées (mode journal)', 'journal_lines', '10')}
+        </ha-expansion-panel>
         <ha-expansion-panel outlined header="${_t(`Effet CRT (WebGL — desktop)`)}">
           <div class="hint">${_t(`Vitre CRT rendue par shader. Sur iPad/mobile : repli CSS automatique.`)}</div>
           <div class="row2">${this._text('Courbure (0–0.35)', 'crt_curve', '0')}${this._text('Aberration px', 'crt_aberration', '1.8')}</div>
@@ -2123,7 +2263,7 @@ if (!window.customCards.some(c => c.type === 'linux-terminal-card-webgl')){
   });
 }
 
-console.info('%c 🐧 linux-terminal-card-webgl v1.12.0 %c CRT SHADER ',
+console.info('%c 🐧 linux-terminal-card-webgl v1.14.0 %c CRT SHADER ',
   'background:#6200EA;color:#fff;padding:2px 4px;border-radius:3px 0 0 3px;font-weight:bold;',
   'background:#040811;color:#00e5ff;padding:2px 4px;border-radius:0 3px 3px 0;');
 
