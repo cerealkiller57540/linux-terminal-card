@@ -1,4 +1,4 @@
-/* ── linux-terminal-card-webgl v1.14.0 ──
+/* ── linux-terminal-card-webgl v1.14.1 ──
  * Variante WEBGL de linux-terminal-card : vrai verre CRT bombé rendu par shader.
  *
  * Desktop : le terminal (texte + barres + GLITCH le chat) est dessiné sur un canvas 2D
@@ -2249,6 +2249,26 @@ class LinuxTerminalCardWebglEditor extends HTMLElement {
 }
 
 if (!customElements.get('linux-terminal-card-webgl'))
+  // Une valeur de config interpolée dans un <style> ne doit pas pouvoir le refermer.
+  function _ltcCfgSafe(v, path) {
+    if (typeof v === 'string') return v.replace(/<\/(style)/gi, '<\\/$1');
+    if (!v || typeof v !== 'object') return v;
+    const isArr = Array.isArray(v);
+    let out = v;
+    for (const k of Object.keys(v)) {
+      const p = isArr ? path : (path ? path + '.' + k : k);
+      const nv = _ltcCfgSafe(v[k], p);
+      if (nv !== v[k]) {
+        if (out === v) out = isArr ? v.slice() : { ...v };
+        out[k] = nv;
+      }
+    }
+    return out;
+  }
+  {
+    const _setCfg = LinuxTerminalCardWebgl.prototype.setConfig;
+    LinuxTerminalCardWebgl.prototype.setConfig = function (c) { return _setCfg.call(this, _ltcCfgSafe(c, '')); };
+  }
   customElements.define('linux-terminal-card-webgl', LinuxTerminalCardWebgl);
 if (!customElements.get('linux-terminal-card-webgl-editor'))
   customElements.define('linux-terminal-card-webgl-editor', LinuxTerminalCardWebglEditor);
@@ -2263,7 +2283,7 @@ if (!window.customCards.some(c => c.type === 'linux-terminal-card-webgl')){
   });
 }
 
-console.info('%c 🐧 linux-terminal-card-webgl v1.14.0 %c CRT SHADER ',
+console.info('%c 🐧 linux-terminal-card-webgl v1.14.1 %c CRT SHADER ',
   'background:#6200EA;color:#fff;padding:2px 4px;border-radius:3px 0 0 3px;font-weight:bold;',
   'background:#040811;color:#00e5ff;padding:2px 4px;border-radius:0 3px 3px 0;');
 
