@@ -192,7 +192,7 @@ Point `log_entity` at a sensor whose attribute holds recent log lines: each new 
 
 **Which languages are supported?** English and French. The editor and the card texts follow your Home Assistant language: French if it is French, English otherwise. Reload the page after changing the language.
 
-**Does it load anything from the internet?** Only the JetBrains Mono and Orbitron fonts, from Google Fonts. No data leaves your Home Assistant.
+**Does it load anything from the internet?** No. JetBrains Mono and Orbitron are embedded in the card. The only exception is opt-in: if you set `header.font` to another font name, that one font is requested from Google Fonts. No data leaves your Home Assistant.
 
 **Which theme is in the screenshots?** Neo Tokyo, the author's own dark theme (not published). The card works with any theme: the glow follows `--rgb-primary-color` when the theme sets it, otherwise it is cyan.
 
@@ -202,6 +202,10 @@ Point `log_entity` at a sensor whose attribute holds recent log lines: each new 
 - The hologram glitch of the cat is inspired by the Johnny Silverhand apparitions in *Cyberpunk 2077*. The pixel-art cat is the author's own mascot.
 
 ## 🌃 More neon cards
+
+## 🔤 Fonts and privacy
+
+JetBrains Mono and Orbitron are embedded in `dist/linux-terminal-card.js` (Latin subset, WOFF2, unmodified from Google Fonts), so by default the card makes **no request to Google Fonts** or any other third-party server. If you choose another font with `header.font`, that single font is loaded from Google Fonts. Both embedded fonts are licensed under the SIL Open Font License 1.1, see [NOTICE.md](NOTICE.md).
 
 ## 🧱 How this repository is built
 
