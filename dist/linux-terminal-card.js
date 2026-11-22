@@ -1,4 +1,4 @@
-/* ── linux-terminal-card-webgl v1.14.3 ──
+/* ── linux-terminal-card-webgl v1.15.0 ──
  * Variante WEBGL de linux-terminal-card : vrai verre CRT bombé rendu par shader.
  *
  * Desktop : le terminal (texte + barres + GLITCH le chat) est dessiné sur un canvas 2D
@@ -90,6 +90,10 @@
  *   dessiné par fillText seulement ; repli CSS = dernière ligne figée, échappée.
  * v1.14.0 (2026-10-12) : mode journal (journal: true) — card dédiée façon tail -f : journal_lines
  *   lignes d'historique, la nouvelle ligne se tape au prompt puis remonte à l'« Entrée ».
+ * v1.15.0 (2026-11-09) : boutons power/reboot dans le header (power_entity,
+ *   reboot_button_entity) — double-tap obligatoire avant d'agir, pastille #pwr masquée quand
+ *   l'un des deux est configuré. setConfig() force un rendu complet si leur présence change,
+ *   même avec un contexte WebGL vivant (sinon _applyLiveConfig() ne les fait jamais apparaître).
  */
 (() => {
 
@@ -528,7 +532,19 @@ const _EN = {
  "Écran « machine injoignable »": "“Machine unreachable” screen",
  "Épaisseur": "Weight",
  "à jour": "up to date",
- "— thème HA —": "— HA theme —"
+ "— thème HA —": "— HA theme —",
+ "Éteindre (double-tap)": "Power off (double-tap)",
+ "Réveiller (WoL)": "Wake up (WoL)",
+ "Redémarrer (double-tap)": "Restart (double-tap)",
+ "Boutons power/reboot (header)": "Power/reboot buttons (header)",
+ "Vide = pastille de statut seule (comportement actuel). Les deux entités sont optionnelles et indépendantes.": "Empty = status dot only (default). Both entities are optional and independent.",
+ "Entité power (switch)": "Power entity (switch)",
+ "Bouton reboot": "Reboot button",
+ "Taille icône px": "Icon size px",
+ "Espacement px": "Spacing px",
+ "Zone de clic px": "Hit area px",
+ "Glow on/off px": "Glow on/off px",
+ "Glow reboot px": "Glow reboot px"
 };
 const _t = (fr) => {
   if (_lang === 'fr' || fr == null || fr === '') return fr;
@@ -547,11 +563,17 @@ class LinuxTerminalCardWebgl extends HTMLElement {
   setConfig(c){
     if (!c) throw new Error('config manquante');
     const first = !this._config;
+    // présence/absence des boutons power/reboot = structurel (cf _render) : un changement
+    // ici doit forcer le rendu complet même si le contexte WebGL est vivant, sinon
+    // _applyLiveConfig() ne les fait jamais apparaître/disparaître.
+    const hadPwrBtns = !!(this._config && (this._config.power_entity || this._config.reboot_button_entity));
+    const willHavePwrBtns = !!(c.power_entity || c.reboot_button_entity);
+    const pwrBtnsChanged = hadPwrBtns !== willHavePwrBtns;
     this._config = { host: 'user@linux', ...c };
 
     // Édition en direct (éditeur) : si le WebGL tourne ET que son contexte est VIVANT,
     // NE PAS recréer le contexte (lourd + async). Relit couleurs/fx/fond, re-rasterise.
-    if (!first && this._gl && this._webgl && !this._gl.isContextLost()){
+    if (!first && !pwrBtnsChanged && this._gl && this._webgl && !this._gl.isContextLost()){
       this._applyLiveConfig();
       return;
     }
@@ -597,6 +619,9 @@ class LinuxTerminalCardWebgl extends HTMLElement {
       const hi = this.shadowRoot.querySelector('.hdr-icon');
       if (hi && hdr.icon) hi.setAttribute('icon', hdr.icon);
     }
+    // boutons power/reboot (présence/absence) : même cas que l'icône ci-dessus — structurel,
+    // pris en charge par le rendu complet. _syncPwr (appelé par _update juste après) couvre
+    // en revanche leur état visuel (on/off, disabled) sans recréer le DOM.
     // force le re-dessin de la texture (nouvelle palette / fond)
     this._renderKey = null;
     this._rasterized = false;
@@ -823,6 +848,13 @@ class LinuxTerminalCardWebgl extends HTMLElement {
       : '';
     const hdrFlickAnim = hdr.flicker ? 'ltc-hdr-flicker 3s ease-in-out infinite' : '';
 
+    // boutons power/reboot du header : masqués si non configurés (défaut = comportement
+    // actuel inchangé pour les instances sans ces champs).
+    const hasPwrBtn = !!c.power_entity;
+    const hasRebootBtn = !!c.reboot_button_entity;
+    const showPwrBtns = hasPwrBtn || hasRebootBtn;
+    const pwrOn = hasPwrBtn && this._ent(c.power_entity)?.v === 'on';
+
     this.shadowRoot.innerHTML = `
       <style>${STYLES}
         ha-card{
@@ -841,13 +873,34 @@ class LinuxTerminalCardWebgl extends HTMLElement {
           ${hdrIconGlow     ? `--ltc-hdr-icon-glow:${hdrIconGlow};`   : ''}
           ${hdrFlickAnim    ? `--ltc-hdr-flicker:${hdrFlickAnim};`    : ''}
           ${frameRgb ? `--ltc-frame:${frameRgb.join(',')};` : ''}
+          --ltc-pwrbtn-icon:${_num(c.pwrbtn_icon_size) ?? 18}px;
+          --ltc-pwrbtn-gap:${_num(c.pwrbtn_gap) ?? 6}px;
+          --ltc-pwrbtn-hit:${_num(c.pwrbtn_hit_size) ?? 36}px;
+          --ltc-pwrbtn-glow-on:${_num(c.pwrbtn_glow_on) ?? 13}px;
+          --ltc-pwrbtn-glow-reboot:${_num(c.pwrbtn_glow_reboot) ?? 13}px;
         }
       </style>
       <ha-card>
         <div class="hdr" id="hdr">
           ${hdr.icon ? `<ha-icon class="hdr-icon" icon="${_esc(hdr.icon)}"></ha-icon>` : ''}
           <span class="hdr-title${hdrGrad ? ' grad' : ''}" id="hdr-title">${_esc(hdr.title || c.title || 'Linux PC')}</span>
-          <span class="hdr-pill" id="pwr">●</span>
+          <span class="hdr-pill" id="pwr" ${showPwrBtns ? 'hidden' : ''}>●</span>
+          ${showPwrBtns ? `
+            <div class="hdr-actions" id="hdr-actions">
+              ${hasPwrBtn ? `
+                <button type="button" class="hdr-btn pwr ${pwrOn ? 'pwr-on' : 'pwr-off'}" id="pwr-btn"
+                  title="${_esc(_t(pwrOn ? 'Éteindre (double-tap)' : 'Réveiller (WoL)'))}">
+                  <ha-icon icon="mdi:power"></ha-icon>
+                </button>
+              ` : ''}
+              ${hasRebootBtn ? `
+                <button type="button" class="hdr-btn reboot" id="reboot-btn" ${hasPwrBtn && !pwrOn ? 'disabled' : ''}
+                  title="${_esc(_t('Redémarrer (double-tap)'))}">
+                  <ha-icon icon="mdi:restart"></ha-icon>
+                </button>
+              ` : ''}
+            </div>
+          ` : ''}
         </div>
         ${this._webgl ? `
           <div class="tv-shell">
@@ -872,6 +925,7 @@ class LinuxTerminalCardWebgl extends HTMLElement {
       </ha-card>`;
 
     this._rendered = true;
+    this._armPwrButtons(c);
 
     if (this._webgl){
       this._initGl().catch(e => this._fallbackToCss(e));
@@ -1343,9 +1397,54 @@ class LinuxTerminalCardWebgl extends HTMLElement {
     this._layoutHit();
   }
 
+  /* ── boutons power/reboot du header : double-tap obligatoire avant d'agir (un tap
+   * accidentel couperait ou redémarrerait la machine). ── */
+  _armPwrButtons(c){
+    const arm = (btn, fire) => {
+      if (btn.classList.contains('armed')){
+        btn.classList.remove('armed');
+        clearTimeout(btn._armTimer);
+        btn.classList.add('fired');
+        setTimeout(() => btn.classList.remove('fired'), 400);
+        fire();
+      } else {
+        btn.classList.add('armed');
+        btn._armTimer = setTimeout(() => btn.classList.remove('armed'), 1600);
+      }
+    };
+    const pwrBtn = this.shadowRoot.getElementById('pwr-btn');
+    if (pwrBtn) pwrBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      arm(pwrBtn, () => {
+        const on = pwrBtn.classList.contains('pwr-on');
+        this._hass?.callService('switch', on ? 'turn_off' : 'turn_on', { entity_id: c.power_entity });
+      });
+    });
+    const rebootBtn = this.shadowRoot.getElementById('reboot-btn');
+    if (rebootBtn) rebootBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (rebootBtn.disabled) return;
+      arm(rebootBtn, () => {
+        this._hass?.callService('button', 'press', { entity_id: c.reboot_button_entity });
+      });
+    });
+  }
+
   _syncPwr(s, al){
     const pwr = this.shadowRoot.getElementById('pwr');
     if (pwr) pwr.className = 'hdr-pill ' + (s.offline ? 'off' : al.lvl === 'crit' ? 'crit' : 'on');
+    const c = this._config;
+    const pwrOn = !!c.power_entity && this._ent(c.power_entity)?.v === 'on';
+    const pwrBtn = this.shadowRoot.getElementById('pwr-btn');
+    if (pwrBtn && !pwrBtn.classList.contains('armed')){
+      pwrBtn.classList.toggle('pwr-on', pwrOn);
+      pwrBtn.classList.toggle('pwr-off', !pwrOn);
+      pwrBtn.title = _t(pwrOn ? 'Éteindre (double-tap)' : 'Réveiller (WoL)');
+    }
+    const rebootBtn = this.shadowRoot.getElementById('reboot-btn');
+    if (rebootBtn && !rebootBtn.classList.contains('armed')){
+      rebootBtn.disabled = !!c.power_entity && !pwrOn;
+    }
   }
 
   /* ── construit la liste ordonnée des lignes (texte + barres) et leurs entités ── */
@@ -1712,8 +1811,7 @@ class LinuxTerminalCardWebgl extends HTMLElement {
     this._renderKey = key;
     this._critical = al.lvl === 'crit';
 
-    const pwr = sr.getElementById('pwr');
-    if (pwr) pwr.className = 'hdr-pill ' + (s.offline ? 'off' : al.lvl === 'crit' ? 'crit' : 'on');
+    this._syncPwr(s, al);
     const screen = sr.getElementById('screen');
     if (screen) screen.classList.toggle('crit', al.lvl === 'crit');
 
@@ -1855,6 +1953,30 @@ const STYLES = `
   .hdr-pill.on{ color:rgb(var(--ltc-grn)); filter:drop-shadow(0 0 5px rgb(var(--ltc-grn))); animation:ltc-blink 2.4s infinite; }
   .hdr-pill.crit{ color:rgb(var(--ltc-red)); filter:drop-shadow(0 0 6px rgb(var(--ltc-red))); animation:ltc-blink .6s infinite; }
   .hdr-pill.off{ color:rgba(255,255,255,.3); }
+
+  /* boutons power/reboot du header, réglés au banc d'essai (ha-card-preview-bench, 2026-11-09) :
+     icon_size:18 gap:6 hit_size:36 glow_on:13 glow_reboot:13 — ne pas rechoisir au jugé. */
+  .hdr-actions{ display:flex; align-items:center; gap:var(--ltc-pwrbtn-gap,6px); flex-shrink:0; }
+  .hdr-btn{ display:flex; align-items:center; justify-content:center; border:none; background:none; padding:0; cursor:pointer;
+    width:var(--ltc-pwrbtn-hit,36px); height:var(--ltc-pwrbtn-hit,36px); --mdc-icon-size:var(--ltc-pwrbtn-icon,18px); color:inherit; }
+  .hdr-btn[disabled]{ cursor:not-allowed; opacity:.35; }
+  /* glow sobre (3 couches : liseré blanc serré + 2 halos colorés) — ne pas
+     repasser à 4 couches façon .hdr-icon, trop large/criard sur une icône aussi petite. */
+  .hdr-btn.pwr-on{ color:rgb(var(--ltc-grn)); filter:
+    drop-shadow(0 0 1px #fff)
+    drop-shadow(0 0 calc(var(--ltc-pwrbtn-glow-on,13px)*.46) rgb(var(--ltc-grn)))
+    drop-shadow(0 0 var(--ltc-pwrbtn-glow-on,13px) rgb(var(--ltc-grn))); }
+  .hdr-btn.pwr-off{ color:rgb(var(--ltc-red)); filter:
+    drop-shadow(0 0 1px #fff)
+    drop-shadow(0 0 calc(var(--ltc-pwrbtn-glow-on,13px)*.46) rgb(var(--ltc-red)))
+    drop-shadow(0 0 var(--ltc-pwrbtn-glow-on,13px) rgb(var(--ltc-red))); }
+  .hdr-btn.reboot{ color:rgb(var(--ltc-amb)); filter:
+    drop-shadow(0 0 1px #fff)
+    drop-shadow(0 0 calc(var(--ltc-pwrbtn-glow-reboot,13px)*.46) rgb(var(--ltc-amb)))
+    drop-shadow(0 0 var(--ltc-pwrbtn-glow-reboot,13px) rgb(var(--ltc-amb))); }
+  .hdr-btn.armed{ animation:ltc-arm-pulse .5s ease-in-out infinite; }
+  .hdr-btn.fired{ opacity:.5; }
+  @keyframes ltc-arm-pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.4; } }
 
   /* ── écran ── */
   .screen{ position:relative; border-radius:20px/26px; overflow:hidden;
@@ -2006,7 +2128,7 @@ class LinuxTerminalCardWebglEditor extends HTMLElement {
     }
     this._fire();
   }
-  _ents(){ return this._hass ? Object.keys(this._hass.states).filter(e => /^(sensor|binary_sensor|button)\./.test(e)).sort() : []; }
+  _ents(){ return this._hass ? Object.keys(this._hass.states).filter(e => /^(sensor|binary_sensor|button|switch)\./.test(e)).sort() : []; }
   _refreshLists(){
     this.querySelectorAll('datalist').forEach(dl => {
       if (dl.childElementCount) return;
@@ -2125,6 +2247,14 @@ class LinuxTerminalCardWebglEditor extends HTMLElement {
         <div class="group"><div class="group-title">${_t(`Général`)}</div>
           ${this._text('Hôte (prompt)', 'host', 'user@linux')}
         </div>
+        <ha-expansion-panel outlined header="${_t(`Boutons power/reboot (header)`)}">
+          <div class="hint">${_t(`Vide = pastille de statut seule (comportement actuel). Les deux entités sont optionnelles et indépendantes.`)}</div>
+          ${this._entity('Entité power (switch)', 'power_entity', 'switch.my_pc')}
+          ${this._entity('Bouton reboot', 'reboot_button_entity', 'button.my_pc_restart')}
+          <div class="row2">${this._text('Taille icône px', 'pwrbtn_icon_size', '18')}${this._text('Espacement px', 'pwrbtn_gap', '6')}</div>
+          <div class="row2">${this._text('Zone de clic px', 'pwrbtn_hit_size', '36')}${this._text('Glow on/off px', 'pwrbtn_glow_on', '13')}</div>
+          ${this._text('Glow reboot px', 'pwrbtn_glow_reboot', '13')}
+        </ha-expansion-panel>
         <ha-expansion-panel outlined header="${_t(`Journal au prompt`)}">
           <div class="hint">${_t(`Tape au prompt les lignes d'un attribut (liste ou texte multi-lignes). Vide = curseur seul.`)} ${_t(`Mode journal : l'écran n'affiche que le journal, façon tail -f.`)}</div>
           ${this._toggle('Mode journal (card dédiée)', 'journal', false)}
@@ -2293,7 +2423,7 @@ if (!window.customCards.some(c => c.type === 'linux-terminal-card-webgl')){
   });
 }
 
-console.info('%c 🐧 linux-terminal-card-webgl v1.14.3 %c CRT SHADER ',
+console.info('%c 🐧 linux-terminal-card-webgl v1.15.0 %c CRT SHADER ',
   'background:#6200EA;color:#fff;padding:2px 4px;border-radius:3px 0 0 3px;font-weight:bold;',
   'background:#040811;color:#00e5ff;padding:2px 4px;border-radius:0 3px 3px 0;');
 

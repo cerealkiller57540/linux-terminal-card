@@ -126,6 +126,7 @@ Every entity option is optional: a missing sensor hides its line.
 | `temp_entity` | Temperature in °C |
 | `battery_entity` / `battery_entity_2` | Battery percentages (*`battery_entity_2` WebGL*) |
 | `net_rx_entity` / `net_tx_entity` | Network speed, in Mbit/s |
+| `power_entity` / `reboot_button_entity` | Optional header buttons: a `switch` to power the machine on/off (e.g. Wake-on-LAN) and a `button` to restart it. Each acts on a double tap; with either set, the status dot is replaced by the buttons |
 
 **Thresholds** (a bar goes amber at `warn`, red at `hot`)
 
@@ -151,6 +152,8 @@ Every entity option is optional: a missing sensor hides its line.
 | `col_txt` / `col_dim` / `col_prompt` / `col_primary` | cyan and green defaults | Text colours (*WebGL*) |
 | `col_up` / `col_down` / `col_warn` / `col_crit` | — | Network and alert colours (*WebGL*) |
 | `col_frame` | theme accent | Colour of the thin frame around the screen (*WebGL*) |
+| `pwrbtn_icon_size` / `pwrbtn_gap` / `pwrbtn_hit_size` | `18` / `6` / `36` | Header buttons: icon size, spacing and tap area, in px (*WebGL*) |
+| `pwrbtn_glow_on` / `pwrbtn_glow_reboot` | `13` / `13` | Glow of the power and restart buttons, in px (*WebGL*) |
 | `screen_bg` / `color_bg` | dark neutral | Screen background |
 
 **CRT** (*WebGL*)
